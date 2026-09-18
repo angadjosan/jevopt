@@ -119,6 +119,15 @@ Jev charges for input only — output is free, since it returns a handful of
 typed values rather than generated text. A three-question call over a short
 ticket ran 408 input / 69 output tokens for $0.000017.
 
+## Robot arm demo
+
+`jevbot/` has Jev flying a robot arm: every tool call the arm exposes is an
+option in one `choice` question, and Jev picks the next action each control
+step until the apple is off the table. 6/6 placements, ~$0.001 per pick.
+See [`jevbot/README.md`](jevbot/README.md).
+
+![the arm picking up an apple](docs/episode.png)
+
 ## Further reading
 
 - [TypeSafe HTTP API reference](https://docs.typesafe.ai/api)
