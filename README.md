@@ -3,6 +3,29 @@
 A dependency-free Python CLI for poking at [`typesafe/jev-1.13`](https://openrouter.ai/typesafe/jev-1.13)
 through OpenRouter.
 
+## Jev is not a chat model
+
+Jev is TypeSafe's "System One" decision model. It does not write prose — it
+evaluates a piece of **state** against typed **questions** and returns structured
+answers with calibrated probabilities. Sending it to `/chat/completions` gets you:
+
+```
+typesafe/jev-1.13 is a decisions model and cannot be used with the
+chat/completions endpoint. Use the /api/alpha/decisions endpoint instead.
+```
+
+So this CLI talks to `POST https://openrouter.ai/api/alpha/decisions`, whose body
+is the [TypeSafe System One schema](https://docs.typesafe.ai/api) with an
+OpenRouter model slug.
+
+There are three question types (*primitives*):
+
+| Type | Asks | Returns |
+| --- | --- | --- |
+| `noul` | a yes/no question | probability that the answer is yes |
+| `choice` | pick one of N options | the pick, a probability per option, confidence |
+| `score` | rate against ordered levels | a weighted score, a probability per level, confidence |
+
 ## Setup
 
 ```sh
@@ -13,42 +36,92 @@ Python 3.10+ is the only requirement; the script uses nothing outside the stdlib
 
 ## Use
 
-```sh
-./jev.py "Write a haiku about type inference"
-./jev.py --stream --system "Be terse." "Explain Hindley-Milner"
-./jev.py -v --temperature 0.2 --max-tokens 256 "..."   # -v prints token usage
-cat prompt.txt | ./jev.py                              # prompt from stdin
-```
-
-Before spending tokens, confirm the model is live and see what OpenRouter
-advertises for it (context length, pricing, supported parameters):
+Confirm the model answers before spending anything (this sends one tiny question,
+because decision models are not listed in OpenRouter's `/models` catalogue):
 
 ```sh
 ./jev.py --check
 ```
 
-If the slug has moved on, `--check` lists the other models under the same
-provider. Point `--model` at whichever one you want.
+Ask it something:
+
+```sh
+./jev.py "Help! My payouts have been failing for 3 days." \
+    --noul   'urgent: Does this convey urgency?' \
+    --choice 'team: Which team should handle this? = billing | technical | sales' \
+    --score  'mood: How frustrated is the customer? = Calm | Frustrated | Very angry'
+```
+
+```
+urgent  (noul)
+    ███████████████████████·    96%  yes
+
+team  (choice) -> billing   [confidence 0.90]
+    ██████████████████████··    93%  billing
+    ██······················     7%  technical
+    ························     0%  sales
+
+mood  (score) -> 1.56 / 2  Very angry   [confidence 0.34]
+    █████████████···········    56%  2  Very angry
+    ███████████·············    44%  1  Frustrated
+    ························     0%  0  Calm
+```
+
+Note the low confidence on `mood`: the probability mass is split between two
+adjacent levels. That second axis is the point of the model — the answer tells
+you *what*, the confidence tells you *whether to act*.
+
+### Question syntax
+
+```
+--noul   'name: instructions'
+--choice 'name: instructions = option | option: rubric | ...'
+--score  'name: instructions = lowest level | ... | highest level'
+```
+
+All three are repeatable, and answers come back under the names you choose.
+Choice options may carry a `: rubric` describing when they apply; score levels
+must be listed low to high. Since `:` and `=` and `|` are separators, anything
+fiddlier is better written as JSON and passed with `--questions`.
+
+### State
+
+State is a plain string by default, but Jev also accepts JSON objects and
+arrays — useful for chat logs and records:
+
+```sh
+./jev.py --state-file conversation.json --json-state --questions questions.json
+cat ticket.txt | ./jev.py --noul 'refund: Is a refund being requested?'
+```
+
+`--questions FILE` takes a raw JSON map of question id to question object, which
+gives you everything the API supports (`criteria` on nouls, structured
+instructions) without fighting the shorthand.
 
 ## Options
 
 | Flag | Meaning |
 | --- | --- |
+| `--noul`, `--choice`, `--score` | add a question (repeatable) |
+| `--questions FILE` | raw JSON questions map (`-` for stdin) |
+| `--state-file FILE` | read state from a file (`-` for stdin) |
+| `--json-state` | parse the state as JSON and send it structured |
 | `--model` | model slug (default `typesafe/jev-1.13`) |
-| `--system` | system prompt |
-| `--stream` | stream the reply token by token |
-| `--temperature`, `--max-tokens` | passed through to the API |
-| `-v` | print token usage and finish reason to stderr |
-| `--check` | look the model up in `/models` and exit |
+| `--json` | print the raw API response |
+| `-v` | print resolved model, token usage and cost to stderr |
+| `--check` | probe the model with one cheap question and exit |
 
-`OPENROUTER_BASE_URL` overrides the API root, which is how the CLI is tested
-against a local mock.
+`OPENROUTER_BASE_URL` overrides the API root (default `https://openrouter.ai/api`).
 
-## Note on sandboxed environments
+## Cost
 
-This code has not yet been run against the live API: the environment it was
-written in blocks outbound traffic to `openrouter.ai` at the egress proxy
-(HTTP 403 on CONNECT). It was instead verified end to end against a local mock
-of the OpenRouter endpoints, covering streaming and non-streaming completions,
-`--check`, stdin input, and the error paths. Run `./jev.py --check` first from a
-network that can reach OpenRouter to confirm the real thing.
+Jev charges for input only — output is free, since it returns a handful of
+typed values rather than generated text. A three-question call over a short
+ticket ran 408 input / 69 output tokens for $0.000017.
+
+## Further reading
+
+- [TypeSafe HTTP API reference](https://docs.typesafe.ai/api)
+- [Primitives](https://docs.typesafe.ai/primitives) — the three question types in depth
+- [Confidence](https://docs.typesafe.ai/confidence) — why it is not the same as probability
+- [Known jagged edges in jev-1.13](https://docs.typesafe.ai/model-jaggedness/jev-1.13)
