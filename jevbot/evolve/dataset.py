@@ -216,11 +216,24 @@ def harvest(per_bucket: int = 2, seed: int = 0) -> list[dict]:
     return instances
 
 
-def split(instances: list[dict], fractions=(0.4, 0.3, 0.3)):
-    n = len(instances)
-    a = int(n * fractions[0])
-    b = a + int(n * fractions[1])
-    return instances[:a], instances[a:b], instances[b:]
+def split(instances: list[dict], fractions=(0.4, 0.3, 0.3), seed: int = 0):
+    """Split by situation, not by instance.
+
+    The state space is finite and the grid enumerates it, so several instances
+    can describe the same situation. Every grammar condition and the label
+    function read only the fields in `_key`, which makes two such instances the
+    *same* training example -- splitting them apart leaks train into test.
+    Splitting whole `_key` groups keeps the test set genuinely unseen.
+    """
+    groups: dict[tuple, list[dict]] = {}
+    for instance in instances:
+        groups.setdefault(_key(instance["state"]), []).append(instance)
+    keys = list(groups)
+    random.Random(seed).shuffle(keys)
+    a = int(len(keys) * fractions[0])
+    b = a + int(len(keys) * fractions[1])
+    return tuple([i for key in part for i in groups[key]]
+                 for part in (keys[:a], keys[a:b], keys[b:]))
 
 
 def main() -> None:

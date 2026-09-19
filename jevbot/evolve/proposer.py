@@ -90,6 +90,20 @@ class Evidence:
             ok = on_pos <= PURITY and self._rate(cid, self.pos[partner]) >= 0.80
         return strength if ok and strength >= MIN_STRENGTH else None
 
+    def shape(self, template: str, cid: str) -> tuple:
+        """Which train states a clause would still permit the action on.
+
+        "Never choose this when the gripper is high" and "Only choose this when
+        the gripper is not high" are the same constraint, and the grammar can
+        produce both. Shortlisting both wastes a slot and narrows what Jev is
+        actually choosing between, so they are collapsed by the states they
+        allow. A "prefer" clause constrains identically but also names the
+        alternative, so it is kept as its own family.
+        """
+        truth = self.truth[cid]
+        allowed = tuple(truth) if template == "only" else tuple(not t for t in truth)
+        return (allowed, "redirect" if template == "prefer" else "constrain")
+
     def clause_value(self, action: str, clause: str) -> float:
         """How much an already-attached clause is earning, for removal."""
         for cid, _phrase, _test in prompt.CONDITIONS:
@@ -119,12 +133,13 @@ def _candidate_clauses(evidence: Evidence, action: str, partner: str,
             scored.append({"clause": clause, "strength": round(strength, 3),
                            "template": template, "condition": cid, "op": "add"})
 
-    scored.sort(key=lambda row: -row["strength"])
+    scored.sort(key=lambda row: (-row["strength"], row["clause"]))
     seen, out = set(), []
     for entry in scored:
-        if entry["clause"] in seen:
+        shape = evidence.shape(entry["template"], entry["condition"])
+        if shape in seen:
             continue
-        seen.add(entry["clause"])
+        seen.add(shape)
         out.append(entry)
         if len(out) >= SHORTLIST - 1:
             break
