@@ -19,7 +19,7 @@ from ..conditions import derive
 from ..task import Condition, Task
 
 # --------------------------------------------------------------------- text
-# Copied verbatim from jevbot/policy.py (GOAL) + jevbot/evolve/prompt.py
+# Copied verbatim from jevbot/policy.py (GOAL), plus the question sentence
 # (ACTION_INSTRUCTION, which is GOAL plus the question sentence).
 GOAL = (
     "A robot arm with a two-finger gripper is working over a table. The task is "
@@ -34,7 +34,7 @@ ACTION_INSTRUCTION = (
     "toward holding the apple in the air?"
 )
 
-# Copied verbatim from jevbot/evolve/prompt.py SEED_CRITERIA -- the naive first
+# The naive first
 # draft, describing each option mechanically. This is what the search starts from.
 SEED_CRITERIA: dict[str, str] = {
     "move_forward": "Move the gripper 3cm in +x (away from the robot base).",
@@ -76,7 +76,7 @@ HANDTUNED_CRITERIA: dict[str, str] = {
             "table.",
 }
 
-DATASET = "jevbot/evolve/dataset.json"
+DATASET = "jevopt/data/robot_states.json"
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # --------------------------------------------------------------- conditions
@@ -90,7 +90,7 @@ def _axis(field: str):
     return get
 
 
-# Of the 21 hand-written conditions in jevbot/evolve/prompt.py, 17 are plain
+# Of the 21 conditions the robot prototype hand-wrote, 17 are plain
 # field=value tests that derive() reproduces exactly. Only these four group two
 # values into one fact ("slightly" and "far" are the same direction), which
 # equality cannot express -- so only these are passed as extras.

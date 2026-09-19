@@ -33,8 +33,8 @@ def run_arm(name: str, candidate: dict, max_steps: int) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--results", default="jevbot/evolve/results.json")
-    parser.add_argument("--out", default="jevbot/evolve/validation.json")
+    parser.add_argument("--results", default="runs/robot.results.json")
+    parser.add_argument("--out", default="runs/robot.validation.json")
     parser.add_argument("--max-steps", type=int, default=45)
     parser.add_argument("--arms", default="seed,handtuned,evolved")
     args = parser.parse_args()

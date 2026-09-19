@@ -18,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from gepa.core.adapter import EvaluationBatch
 
-from jevbot import client
+from . import client
 
 from . import grammar
 from .task import Task

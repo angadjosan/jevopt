@@ -12,8 +12,8 @@ from __future__ import annotations
 import json
 import random
 
-from ..perception import describe, observe
-from ..sim import ACTIONS, TABLE_TOP, ArmWorld
+from .perception import describe, observe
+from .sim import ACTIONS, TABLE_TOP, ArmWorld
 
 HARVEST_POSITIONS = [
     (0.40, 0.10), (0.30, -0.15), (0.35, 0.22), (0.25, 0.00), (0.20, -0.25),
@@ -239,7 +239,7 @@ def split(instances: list[dict], fractions=(0.4, 0.3, 0.3), seed: int = 0):
 def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--out", default="jevbot/evolve/dataset.json")
+    parser.add_argument("--out", default="jevopt/data/robot_states.json")
     parser.add_argument("--per-bucket", type=int, default=3)
     args = parser.parse_args()
 

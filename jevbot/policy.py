@@ -9,7 +9,7 @@ second axis to log and gate on.
 
 from __future__ import annotations
 
-from . import client
+from jevopt import client
 from .sim import ACTIONS
 
 GOAL = (

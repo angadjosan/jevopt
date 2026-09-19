@@ -69,7 +69,7 @@ NUMERIC_QUESTIONS = {
 
 
 def main() -> None:
-    from . import client
+    from jevopt import client
     rows = []
     for name, nums, words, want in CASES:
         body = client.ask(numeric_state(*nums), NUMERIC_QUESTIONS)

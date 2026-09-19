@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from jevbot import client
+from . import client
 
 from . import grammar
 from .evidence import MIN_STRENGTH, Evidence
