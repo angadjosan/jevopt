@@ -22,7 +22,7 @@ from .. import client
 from ..sim import ACTIONS
 from . import prompt
 
-WORKERS = 12
+WORKERS = 16
 
 
 def _score_one(instance: dict, questions: dict) -> dict:

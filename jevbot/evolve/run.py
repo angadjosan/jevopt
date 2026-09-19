@@ -41,17 +41,22 @@ def main() -> None:
     parser.add_argument("--dataset", default="jevbot/evolve/dataset.json")
     parser.add_argument("--budget", type=int, default=1500,
                         help="max metric calls (Jev evaluations)")
-    parser.add_argument("--minibatch", type=int, default=6)
+    parser.add_argument("--minibatch", type=int, default=10)
+    parser.add_argument("--no-jev-choice", action="store_true",
+                        help="ablation: take the statistically strongest repair "
+                             "instead of letting Jev pick among the shortlist")
+    parser.add_argument("--no-merge", action="store_true")
     parser.add_argument("--out", default="jevbot/evolve/evolved_prompt.txt")
     parser.add_argument("--results", default="jevbot/evolve/results.json")
     args = parser.parse_args()
 
     train, val, test = load(args.dataset)
     adapter = JevAdapter()
-    mutator = proposer.JevProposer()
+    mutator = proposer.JevProposer(train, use_jev_choice=not args.no_jev_choice)
 
     print(f"train {len(train)} / val {len(val)} / test {len(test)}; "
-          f"budget {args.budget} metric calls\n")
+          f"budget {args.budget} metric calls; "
+          f"repair choice: {'Jev' if not args.no_jev_choice else 'statistical argmax'}\n")
 
     result = gepa.optimize(
         seed_candidate=proposer.seed_candidate(),
@@ -61,6 +66,7 @@ def main() -> None:
         custom_candidate_proposer=mutator,
         candidate_selection_strategy="pareto",
         module_selector="round_robin",
+        use_merge=not args.no_merge,
         reflection_minibatch_size=args.minibatch,
         max_metric_calls=args.budget,
         display_progress_bar=False,

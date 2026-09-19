@@ -136,7 +136,7 @@ HEIGHT = ["below the gripper", "level with the gripper", "above the gripper"]
 GRIP = [("open", "no"), ("closed", "no"), ("closed", "yes")]
 
 
-def grid(per_label: int = 9, seed: int = 0) -> list[dict]:
+def grid(per_label: int = 26, seed: int = 0) -> list[dict]:
     """Every distinguishable situation, sampled evenly across the labels.
 
     Rollouts alone over-represent whatever the start pose happens to produce
@@ -227,7 +227,7 @@ def main() -> None:
     import argparse
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", default="jevbot/evolve/dataset.json")
-    parser.add_argument("--per-bucket", type=int, default=2)
+    parser.add_argument("--per-bucket", type=int, default=3)
     args = parser.parse_args()
 
     instances = harvest(args.per_bucket)

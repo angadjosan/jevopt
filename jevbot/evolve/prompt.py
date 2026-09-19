@@ -158,3 +158,34 @@ def render_prompt(candidate: dict[str, str]) -> str:
     for name, text in criteria_of(candidate).items():
         lines.append(f"{name}: {text}")
     return "\n".join(lines)
+
+
+def all_clauses() -> set[str]:
+    """Every string the grammar can produce -- lets us find added clauses in a
+    component's text, so they can be removed again as well as appended."""
+    out = set()
+    for cid, _phrase, _test in CONDITIONS:
+        out.add(render_clause("only", cid))
+        out.add(render_clause("never", cid))
+        for other in ACTIONS:
+            out.add(render_clause("prefer", cid, other))
+    return out
+
+
+_ALL = None
+
+
+def split_clauses(text: str) -> tuple[str, list[str]]:
+    """Separate the seed description from clauses the search has appended."""
+    global _ALL
+    if _ALL is None:
+        _ALL = all_clauses()
+    parts, base, clauses = [p.strip() for p in text.split(". ")], [], []
+    for i, part in enumerate(parts):
+        sentence = part if part.endswith(".") else part + "."
+        (clauses if sentence in _ALL else base).append(sentence)
+    return " ".join(base), clauses
+
+
+def compose(base: str, clauses: list[str]) -> str:
+    return " ".join([base] + clauses).strip()

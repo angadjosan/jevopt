@@ -39,55 +39,101 @@ def _confusion(records: list[dict], action: str) -> dict[str, float]:
     return dict(mass)
 
 
-def _candidate_clauses(records: list[dict], action: str, partner: str):
-    """Conditions that separate 'this action is right' from 'it is not'.
+MIN_POSITIVES = 5        # evidence gate: never learn a rule from 1-2 examples
+MIN_NEGATIVES = 5
+MIN_STRENGTH = 0.15      # a clause must exclude this share of the wrong cases
+COVERAGE = 0.95          # an "only" clause must hold on ~all correct cases
+PURITY = 0.05            # a "never" clause must hold on ~none of them
 
-    Pure set logic over the state schema -- no model involved. A clause only
-    survives if it is true on every state where the action is correct and false
-    on at least one where it is not (or the mirror image, for exclusions).
+
+class Evidence:
+    """Condition truth-tables over the whole training set, computed once.
+
+    Scoring a clause costs no model calls -- it is set logic over labelled
+    states -- so there is no reason to judge one on a 6-example minibatch. The
+    minibatch still decides *which* component and which confusion to attack;
+    only the quality of the repair is measured against everything known.
     """
-    positives = [r["state"] for r in records if action in r["should_have_been"]]
-    negatives = [r["state"] for r in records if action not in r["should_have_been"]]
-    partner_states = [r["state"] for r in records
-                      if partner in r["should_have_been"]]
-    if not negatives:
-        return []
 
+    def __init__(self, instances: list[dict]) -> None:
+        self.states = [i["state"] for i in instances]
+        self.good = [set(i["acceptable"]) for i in instances]
+        self.truth = {cid: [prompt.holds(cid, s) for s in self.states]
+                      for cid, _p, _t in prompt.CONDITIONS}
+        self.pos = {a: [i for i, g in enumerate(self.good) if a in g] for a in ACTIONS}
+        self.neg = {a: [i for i, g in enumerate(self.good) if a not in g] for a in ACTIONS}
+
+    def _rate(self, cid: str, rows: list[int]) -> float:
+        if not rows:
+            return 0.0
+        truth = self.truth[cid]
+        return sum(truth[i] for i in rows) / len(rows)
+
+    def score(self, action: str, template: str, cid: str,
+              partner: str | None) -> float | None:
+        """Discriminative strength on train, or None if the clause is unsound."""
+        pos, neg = self.pos[action], self.neg[action]
+        if len(pos) < MIN_POSITIVES or len(neg) < MIN_NEGATIVES:
+            return None
+        on_pos, on_neg = self._rate(cid, pos), self._rate(cid, neg)
+
+        if template == "only":
+            strength = 1.0 - on_neg
+            ok = on_pos >= COVERAGE
+        elif template == "never":
+            strength = on_neg
+            ok = on_pos <= PURITY
+        else:                                    # prefer <partner> when C
+            if partner is None or len(self.pos[partner]) < MIN_POSITIVES:
+                return None
+            strength = on_neg
+            ok = on_pos <= PURITY and self._rate(cid, self.pos[partner]) >= 0.80
+        return strength if ok and strength >= MIN_STRENGTH else None
+
+    def clause_value(self, action: str, clause: str) -> float:
+        """How much an already-attached clause is earning, for removal."""
+        for cid, _phrase, _test in prompt.CONDITIONS:
+            for template in ("only", "never"):
+                if prompt.render_clause(template, cid) == clause:
+                    return self.score(action, template, cid, None) or 0.0
+            for other in ACTIONS:
+                if prompt.render_clause("prefer", cid, other) == clause:
+                    return self.score(action, "prefer", cid, other) or 0.0
+        return 0.0
+
+
+def _candidate_clauses(evidence: Evidence, action: str, partner: str,
+                       text: str) -> list[dict]:
+    """Shortlist repairs: the strongest sound additions, plus a removal if a
+    clause already attached is not earning its place."""
+    base, attached = prompt.split_clauses(text)
     scored = []
     for cid, _phrase, _test in prompt.CONDITIONS:
-        pos_hold = [prompt.holds(cid, s) for s in positives]
-        neg_hold = [prompt.holds(cid, s) for s in negatives]
+        for template, other in (("only", None), ("never", None), ("prefer", partner)):
+            strength = evidence.score(action, template, cid, other)
+            if strength is None:
+                continue
+            clause = prompt.render_clause(template, cid, other)
+            if clause in attached:
+                continue
+            scored.append({"clause": clause, "strength": round(strength, 3),
+                           "template": template, "condition": cid, "op": "add"})
 
-        # "Only choose this when C": C must be necessary for the action.
-        if positives and all(pos_hold):
-            excluded = sum(1 for h in neg_hold if not h)
-            if excluded:
-                scored.append((excluded / len(negatives), "only", cid, None))
-
-        # "Never choose this when C": C must never hold when the action is right.
-        if not any(pos_hold):
-            caught = sum(1 for h in neg_hold if h)
-            if caught:
-                scored.append((caught / len(negatives), "never", cid, None))
-
-        # "When C, choose <partner> instead": C marks the partner's territory.
-        if partner_states and not any(pos_hold) and \
-                all(prompt.holds(cid, s) for s in partner_states):
-            caught = sum(1 for h in neg_hold if h)
-            if caught:
-                scored.append((caught / len(negatives), "prefer", cid, partner))
-
-    scored.sort(key=lambda row: -row[0])
+    scored.sort(key=lambda row: -row["strength"])
     seen, out = set(), []
-    for strength, template, cid, other in scored:
-        clause = prompt.render_clause(template, cid, other)
-        if clause in seen:
+    for entry in scored:
+        if entry["clause"] in seen:
             continue
-        seen.add(clause)
-        out.append({"clause": clause, "strength": round(strength, 3),
-                    "template": template, "condition": cid})
-        if len(out) >= SHORTLIST:
+        seen.add(entry["clause"])
+        out.append(entry)
+        if len(out) >= SHORTLIST - 1:
             break
+
+    if attached:
+        worst = min(attached, key=lambda c: evidence.clause_value(action, c))
+        if evidence.clause_value(action, worst) < MIN_STRENGTH:
+            out.append({"clause": f"Remove this rule: {worst}", "strength": 0.0,
+                        "template": "remove", "condition": worst, "op": "remove"})
     return out
 
 
@@ -136,8 +182,11 @@ REPAIR_INSTRUCTION = (
 class JevProposer:
     """A GEPA ProposalFn that never generates text."""
 
-    def __init__(self, model: str = client.MODEL) -> None:
+    def __init__(self, train: list[dict], model: str = client.MODEL,
+                 use_jev_choice: bool = True) -> None:
         self.model = model
+        self.evidence = Evidence(train)
+        self.use_jev_choice = use_jev_choice
         self.log: list[dict] = []
 
     def __call__(self, candidate, reflective_dataset, components_to_update):
@@ -146,7 +195,8 @@ class JevProposer:
             action = component[len(prompt.PREFIX):]
             records = list(reflective_dataset.get(component, []))
             text = candidate.get(component, prompt.SEED_CRITERIA.get(action, ""))
-            if text.count(". ") >= MAX_CLAUSES + 1:
+            base, attached = prompt.split_clauses(text)
+            if len(attached) > MAX_CLAUSES:
                 continue
 
             failures = [r for r in records if r["role"] != "correct"]
@@ -157,14 +207,18 @@ class JevProposer:
                 continue
             partner = max(mass, key=mass.get)
 
-            shortlist = _candidate_clauses(records, action, partner)
+            shortlist = _candidate_clauses(self.evidence, action, partner, text)
             if not shortlist:
                 continue
 
             pick = self._choose(shortlist, _digest(records, action, partner, text))
             if pick is None:
                 continue
-            new_text = prompt.apply_clause(text, pick["clause"])
+            if pick["op"] == "remove":
+                new_text = prompt.compose(
+                    base, [c for c in attached if c != pick["condition"]])
+            else:
+                new_text = prompt.apply_clause(text, pick["clause"])
             if new_text == text:
                 continue
             proposals[component] = new_text
@@ -177,7 +231,7 @@ class JevProposer:
 
     def _choose(self, shortlist: list[dict], digest: dict) -> dict | None:
         """Jev picks the repair. One choice question over the shortlisted clauses."""
-        if len(shortlist) == 1:
+        if len(shortlist) == 1 or not self.use_jev_choice:
             return shortlist[0]
         options = {f"repair_{i}": entry["clause"] for i, entry in enumerate(shortlist)}
         try:
@@ -192,6 +246,9 @@ class JevProposer:
             return shortlist[int(chosen.split("_")[1])]
         except Exception:
             return shortlist[0]      # fall back to the most discriminative
+
+
+MAX_CLAUSES_DOC = MAX_CLAUSES
 
 
 def seed_candidate() -> dict[str, str]:
