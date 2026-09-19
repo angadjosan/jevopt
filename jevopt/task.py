@@ -60,6 +60,36 @@ class Task:
         """
         return tuple(condition.holds(state) for condition in self.conditions)
 
+    def conflicting_groups(self) -> list[dict]:
+        """Signature groups whose instances disagree about `acceptable`.
+
+        A group is one training example as far as the optimiser is concerned:
+        no candidate wording can tell its states apart, so if the labels inside
+        it differ, the field the decision turns on is missing from the condition
+        vocabulary and some of those instances are unlearnable by construction.
+        Reported as data rather than raised -- such a task still trains, it is
+        just capped below 100%, and the caller decides whether to warn.
+
+        Largest group first: a caller showing only the worst offenders gets the
+        ones costing the most accuracy.
+        """
+        groups: dict[tuple, dict] = {}
+        for instance in self.instances:
+            key = self.signature(instance["state"])
+            group = groups.get(key)
+            if group is None:
+                # First state in the group is the one a human reads in a warning.
+                group = groups[key] = {"n": 0, "labels": set(),
+                                       "example": instance["state"]}
+            group["n"] += 1
+            group["labels"].add(tuple(sorted(instance["acceptable"])))
+
+        out = [{"size": g["n"], "labels": sorted(g["labels"]),
+                "example": g["example"]}
+               for g in groups.values() if len(g["labels"]) > 1]
+        out.sort(key=lambda g: -g["size"])
+        return out
+
     def split(self, fractions=(0.4, 0.3, 0.3), seed: int = 0):
         groups: dict[tuple, list[dict]] = {}
         for instance in self.instances:

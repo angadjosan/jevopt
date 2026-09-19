@@ -16,6 +16,12 @@ from .task import Condition
 MAX_VALUES = 8            # a field with more distinct values is an identifier
 SKIP_SUFFIXES = ("step",)
 
+# Why a field yielded no conditions. `diagnose` reports these verbatim, so they
+# are named once here rather than spelled out at each use.
+TOO_MANY = "too many distinct values"
+CONSTANT = "constant"
+SKIPPED = "skipped name"
+
 
 def flatten(state: dict, prefix: str = "") -> dict[str, object]:
     out: dict[str, object] = {}
@@ -43,20 +49,41 @@ def _at(path: str):
     return get
 
 
-def derive(instances: list[dict], extra: list[Condition] | None = None,
-           max_values: int = MAX_VALUES) -> list[Condition]:
-    """One equality condition per (field, value) the states actually contain."""
+def _scan(instances: list[dict]) -> dict[str, set]:
+    """Every flattened field across the states, with the values it actually takes.
+
+    Skipped names are collected too: `diagnose` has to be able to say how wide a
+    field it refused was.
+    """
     seen: dict[str, set] = {}
     for instance in instances:
         for path, value in flatten(instance["state"]).items():
-            if path.endswith(SKIP_SUFFIXES):
-                continue
             seen.setdefault(path, set()).add(value)
+    return seen
 
+
+def _rejection(path: str, values: set, max_values: int) -> str | None:
+    """Why this field yields no conditions, or None if it yields some.
+
+    `derive` and `diagnose` both decide through here. A warning that disagreed
+    with what was actually built would be worse than no warning at all.
+    """
+    if path.endswith(SKIP_SUFFIXES):
+        return SKIPPED
+    if len(values) < 2:
+        return CONSTANT               # a constant field says nothing
+    if len(values) > max_values:
+        return TOO_MANY               # wide ones are identifiers, not facts
+    return None
+
+
+def derive(instances: list[dict], extra: list[Condition] | None = None,
+           max_values: int = MAX_VALUES) -> list[Condition]:
+    """One equality condition per (field, value) the states actually contain."""
     conditions: list[Condition] = []
-    for path, values in sorted(seen.items()):
-        if not 2 <= len(values) <= max_values:
-            continue                  # constant fields say nothing; wide ones are ids
+    for path, values in sorted(_scan(instances).items()):
+        if _rejection(path, values, max_values) is not None:
+            continue
         getter = _at(path)
         for value in sorted(values, key=str):
             conditions.append(Condition(
@@ -66,3 +93,22 @@ def derive(instances: list[dict], extra: list[Condition] | None = None,
             ))
     conditions.extend(extra or [])
     return conditions
+
+
+def diagnose(instances: list[dict], max_values: int = MAX_VALUES) -> dict:
+    """Which state fields became conditions, and which were discarded, and why.
+
+    `derive` returning a short list looks the same whether the states are simple
+    or whether the one field the decision turns on was thrown away for having
+    too many values. Nothing downstream can tell those apart, so the field scan
+    is reported here as data for a caller to warn about.
+    """
+    kept: dict[str, int] = {}
+    dropped: dict[str, tuple[int, str]] = {}
+    for path, values in sorted(_scan(instances).items()):
+        reason = _rejection(path, values, max_values)
+        if reason is None:
+            kept[path] = len(values)
+        else:
+            dropped[path] = (len(values), reason)
+    return {"kept": kept, "dropped": dropped}
