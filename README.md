@@ -73,8 +73,7 @@ per option — is the arm to beat, and it is genuinely competitive. On triage th
 search wins — better on 8 of 10 seeds, worse on none, sign test p=0.008 — but
 its best seed matches the evolved arm outright, and a noise-floor control (the
 same prompt entered twice) shows 7 of 15 arms do not separate from it at all. A
-careful human still beats the optimiser by 10 points, at p=0.004. See
-[`docs/findings.md`](docs/findings.md).
+careful human still beats the optimiser by 10 points, at p=0.004.
 
 ## Defining a task
 
