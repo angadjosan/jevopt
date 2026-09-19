@@ -21,6 +21,7 @@ SKIP_SUFFIXES = ("step",)
 TOO_MANY = "too many distinct values"
 CONSTANT = "constant"
 SKIPPED = "skipped name"
+NOT_SCALAR = "not a scalar"
 
 
 def flatten(state: dict, prefix: str = "") -> dict[str, object]:
@@ -29,10 +30,13 @@ def flatten(state: dict, prefix: str = "") -> dict[str, object]:
         path = f"{prefix}{key}"
         if isinstance(value, dict):
             out.update(flatten(value, prefix=f"{path}."))
-        elif isinstance(value, (str, bool, int, float)) and not isinstance(value, bool):
+        elif isinstance(value, (str, bool, int, float)):
             out[path] = value
-        elif isinstance(value, bool):
-            out[path] = value
+        else:
+            # Lists, None and anything else cannot become an equality condition.
+            # Record the path anyway: a field that is invisible to diagnose is
+            # exactly the silent discard diagnose exists to surface.
+            out[path] = NOT_SCALAR
     return out
 
 
@@ -63,6 +67,8 @@ def _scan(instances: list[dict]) -> dict[str, set]:
 
 
 def _rejection(path: str, values: set, max_values: int) -> str | None:
+    if NOT_SCALAR in values:
+        return NOT_SCALAR
     """Why this field yields no conditions, or None if it yields some.
 
     `derive` and `diagnose` both decide through here. A warning that disagreed
