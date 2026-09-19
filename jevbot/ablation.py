@@ -12,7 +12,7 @@ measurable rather than asserted.
 
 from __future__ import annotations
 
-from .policy import QUESTIONS, decide
+from .policy import NOULS, decide
 from .sim import ACTIONS
 
 # (name, numeric state, worded state, expected action)
@@ -54,7 +54,6 @@ def worded_state(fb, lr, height, over, height_ok, fingers="open", held="no"):
 
 
 NUMERIC_QUESTIONS = {
-    **QUESTIONS,
     "action": {
         "type": "choice",
         "criteria": dict(ACTIONS),
@@ -65,10 +64,14 @@ NUMERIC_QUESTIONS = {
             "means below). All in metres. Which single action should it take now?"
         ),
     },
+    **NOULS,
 }
 
 
 def main() -> None:
+    import argparse
+    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
+
     from jevopt import client
     rows = []
     for name, nums, words, want in CASES:

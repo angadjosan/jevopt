@@ -70,9 +70,8 @@ def _clamp(value: float, low: float, high: float) -> float:
 class ArmWorld:
     """Panda + table + apple, stepped through discrete primitives."""
 
-    def __init__(self, apple_xy: tuple[float, float] = (0.45, 0.10), seed: int = 0):
+    def __init__(self, apple_xy: tuple[float, float] = (0.45, 0.10)):
         self.apple_xy = apple_xy
-        self.rng = np.random.default_rng(seed)
         self.client = p.connect(p.DIRECT)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.setGravity(0, 0, -9.81)

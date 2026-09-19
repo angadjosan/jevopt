@@ -97,7 +97,7 @@ def _axis(offset: float, positive: str, negative: str) -> str:
     return f"{'slightly' if abs(offset) < NEAR else 'far'} {where}"
 
 
-def describe(obs: dict, ee, finger_gap: float, fingers: str, holding: bool,
+def describe(obs: dict, ee, fingers: str, holding: bool,
              step: int, last_action: str | None, last_result: str | None,
              table_top: float) -> dict:
     """Assemble the state handed to Jev.

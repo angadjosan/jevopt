@@ -14,9 +14,8 @@ from .sim import TABLE_TOP, ArmWorld
 def snapshot(world: ArmWorld, step: int, last: tuple) -> dict:
     rgb, depth, view, proj, _ = world.camera()
     state = describe(observe(rgb, depth, view, proj), world.ee_pos(),
-                     world.finger_gap(), world.fingers_commanded(),
-                     world.object_between_fingers(), step, last[0], last[1],
-                     TABLE_TOP)
+                     world.fingers_commanded(), world.object_between_fingers(),
+                     step, last[0], last[1], TABLE_TOP)
     return state, rgb
 
 
@@ -31,8 +30,7 @@ def episode(apple_xy, max_steps=45, model=None, frame_dir=None, quiet=False,
     for step in range(max_steps):
         state, rgb = snapshot(world, step, last)
         frames.append(rgb)
-        choice = decide(state, model=model or None, questions=questions) if model \
-            else decide(state, questions=questions)
+        choice = decide(state, model=model, questions=questions)
         spend += choice["usage"].get("cost", 0.0) or 0.0
         action = choice["action"]
 

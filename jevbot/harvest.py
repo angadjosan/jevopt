@@ -173,7 +173,7 @@ def grid(per_label: int = 26, seed: int = 0) -> list[dict]:
                             {"state": state, "acceptable": good, "source": "grid"})
 
     out = []
-    for label, items in sorted(pool.items()):
+    for _label, items in sorted(pool.items()):
         rng.shuffle(items)
         out.extend(items[:per_label])
     return out
@@ -190,7 +190,7 @@ def harvest(per_bucket: int = 2, seed: int = 0) -> list[dict]:
         for step in range(60):
             rgb, depth, view, proj, _ = world.camera()
             state = describe(observe(rgb, depth, view, proj), world.ee_pos(),
-                             world.finger_gap(), world.fingers_commanded(),
+                             world.fingers_commanded(),
                              world.object_between_fingers(), step, last[0], last[1],
                              TABLE_TOP)
             good = acceptable(state)
@@ -238,6 +238,7 @@ def split(instances: list[dict], fractions=(0.4, 0.3, 0.3), seed: int = 0):
 
 def main() -> None:
     import argparse
+    import os
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", default="jevopt/data/robot_states.json")
     parser.add_argument("--per-bucket", type=int, default=3)
@@ -245,6 +246,7 @@ def main() -> None:
 
     instances = harvest(args.per_bucket)
     train, val, test = split(instances)
+    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w") as fh:
         json.dump({"train": train, "val": val, "test": test}, fh, indent=1)
 

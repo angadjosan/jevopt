@@ -10,6 +10,7 @@ second axis to log and gate on.
 from __future__ import annotations
 
 from jevopt import client
+
 from .sim import ACTIONS
 
 GOAL = (
@@ -20,15 +21,19 @@ GOAL = (
     "describes where the apple is relative to the gripper, as seen by a camera."
 )
 
-QUESTIONS = {
-    "action": {
-        "type": "choice",
-        "instructions": (
-            GOAL + " Which single action should the arm take right now to make "
-            "progress toward holding the apple in the air?"
-        ),
-        "criteria": dict(ACTIONS),
-    },
+ACTION_QUESTION = {
+    "type": "choice",
+    "instructions": (
+        GOAL + " Which single action should the arm take right now to make "
+        "progress toward holding the apple in the air?"
+    ),
+    "criteria": dict(ACTIONS),
+}
+
+# The side questions. Kept separate so an alternative action question -- the
+# optimised one in validate.py, the numeric one in ablation.py -- can be dropped
+# in front of the same two nouls.
+NOULS = {
     "centred": {
         "type": "noul",
         "instructions": (
@@ -53,10 +58,17 @@ QUESTIONS = {
     },
 }
 
+QUESTIONS = {"action": ACTION_QUESTION, **NOULS}
 
-def decide(state: dict, model: str = client.MODEL, questions: dict | None = None) -> dict:
-    """One Jev call -> the chosen action plus the two side judgements."""
-    body = client.ask(state, questions or QUESTIONS, model=model)
+
+def decide(state: dict, model: str | None = None, questions: dict | None = None) -> dict:
+    """One Jev call -> the chosen action plus the two side judgements.
+
+    `questions` overrides the request wholesale, for the arms that swap the
+    action question out; it must still answer under "action", "centred" and
+    "holding".
+    """
+    body = client.ask(state, questions or QUESTIONS, model=model or client.MODEL)
     answers = body["answers"]
     action = answers["action"]
     return {
