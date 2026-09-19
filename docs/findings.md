@@ -8,8 +8,15 @@ advance: [`preregistration.md`](preregistration.md).
 
 | | naive seed | **evolved** | hand-written | random clauses (10 seeds) |
 | --- | ---: | ---: | ---: | ---: |
-| alert triage | 67.4% | **87.6%** | 97.8% | 81.1% (71.9–87.6) |
+| alert triage | 68.5% | **87.6%** | 97.8% | 81.1% (71.9–87.6) |
 | robot arm | 52.8% | **78.7%** | 79.8% | 82.2% (75.3–88.8) |
+
+Every figure here is from the paired pass in `runs/*.compare.json`, where all
+arms answered the same instances in one run. The per-run files report the same
+arms up to about a point (triage seed 67.4% there, 68.5% here; robot evolved
+80.9% there, 78.7% here) because Jev is sampled and each pass is its own
+measurement. Quoting across the two would be comparing arms that never sat the
+same exam -- the reporter renders them as separate sections for that reason.
 
 Everything beats its naive seed by 20–26 points, and that is the one result
 that is unambiguous.

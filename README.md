@@ -51,8 +51,14 @@ split so no situation appears in more than one split.
 
 | | naive seed | **evolved** | hand-written | random clauses |
 | --- | ---: | ---: | ---: | ---: |
-| alert triage | 67.4% | **87.6%** | 97.8% | 81.1% |
+| alert triage | 68.5% | **87.6%** | 97.8% | 81.1% |
 | robot arm | 52.8% | **78.7%** | 79.8% | 82.2% |
+
+All four columns come from one paired evaluation pass (`runs/*.compare.json`),
+where every arm answered the same instances. Numbers in the individual run files
+differ by a point or so: Jev is sampled, so a separate pass is a separate
+measurement, and mixing the two sources would compare arms that never sat the
+same exam.
 
 On triage it evolved this, from an option description that had said only
 "automatically apply the runbook remediation":
