@@ -1,0 +1,1171 @@
+{
+  "task": "triage",
+  "k": 2,
+  "limit": 0,
+  "report": {
+    "greedy": {
+      "val": {
+        "accuracy": 0.6818181818181818,
+        "mean_margin": 0.3689772727272728,
+        "mean_confidence": 0.8093181818181819,
+        "n": 88,
+        "wrong": [
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          }
+        ]
+      },
+      "test": {
+        "accuracy": 0.7528089887640449,
+        "mean_margin": 0.5031460674157302,
+        "mean_confidence": 0.8462921348314607,
+        "n": 89,
+        "wrong": [
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          }
+        ]
+      },
+      "clauses": {
+        "page_oncall": [
+          "Never choose this when duplicate_of_open_incident is \"yes\".",
+          "Only choose this when duplicate_of_open_incident is \"no\"."
+        ],
+        "create_ticket": [
+          "Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service.",
+          "Never choose this when duplicate_of_open_incident is \"yes\"."
+        ],
+        "auto_remediate": [
+          "Only choose this when the blast radius is small -- service_tier is \"tier3\", or service_tier is \"tier2\" with a sev3 symptom.",
+          "Never choose this when known_runbook is \"no\"."
+        ],
+        "rollback_deploy": [
+          "Never choose this when recent_deploy is \"no\".",
+          "Only choose this when recent_deploy is \"yes\"."
+        ],
+        "suppress": [
+          "Never choose this when duplicate_of_open_incident is \"no\".",
+          "Only choose this when duplicate_of_open_incident is \"yes\"."
+        ]
+      },
+      "prompt": "You are the first responder on a production on-call rota. An alert has fired and the record above is everything the alerting system knows: how severe the symptom is, how important the affected service is, how much error budget it has left, whether anything shipped to it recently, whether an incident someone is already working covers this alert, whether it is the working day, and whether a written runbook exists. Every response costs something -- waking a person, a queue of tickets nobody reads, an automated action taken blind, a needless rollback, or a real problem going unseen. Which single response should be taken for this alert right now?\n\npage_oncall: Send a phone page to the on-call engineer. Never choose this when duplicate_of_open_incident is \"yes\". Only choose this when duplicate_of_open_incident is \"no\".\ncreate_ticket: File a ticket in the team's backlog queue. Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service. Never choose this when duplicate_of_open_incident is \"yes\".\nauto_remediate: Run the alert's automated remediation script. Only choose this when the blast radius is small -- service_tier is \"tier3\", or service_tier is \"tier2\" with a sev3 symptom. Never choose this when known_runbook is \"no\".\nrollback_deploy: Revert the service to the previously deployed build. Never choose this when recent_deploy is \"no\". Only choose this when recent_deploy is \"yes\".\nsuppress: Silence the alert and record no follow-up work. Never choose this when duplicate_of_open_incident is \"no\". Only choose this when duplicate_of_open_incident is \"yes\"."
+    },
+    "random.s0": {
+      "val": {
+        "accuracy": 0.7727272727272727,
+        "mean_margin": 0.4940909090909092,
+        "mean_confidence": 0.7818181818181821,
+        "n": 88,
+        "wrong": [
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          }
+        ]
+      },
+      "test": {
+        "accuracy": 0.8539325842696629,
+        "mean_margin": 0.6303370786516853,
+        "mean_confidence": 0.8157303370786515,
+        "n": 89,
+        "wrong": [
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          }
+        ]
+      },
+      "clauses": {
+        "page_oncall": [
+          "Never choose this when severity is \"sev3\".",
+          "Only choose this when duplicate_of_open_incident is \"no\"."
+        ],
+        "create_ticket": [
+          "Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service.",
+          "Only choose this when duplicate_of_open_incident is \"no\"."
+        ],
+        "auto_remediate": [
+          "Never choose this when service_tier is \"tier1\".",
+          "Never choose this when known_runbook is \"no\"."
+        ],
+        "rollback_deploy": [
+          "Only choose this when recent_deploy is \"yes\".",
+          "Never choose this when severity is \"sev3\"."
+        ],
+        "suppress": [
+          "When duplicate_of_open_incident is \"no\", choose create_ticket instead of this.",
+          "Only choose this when duplicate_of_open_incident is \"yes\"."
+        ]
+      },
+      "prompt": "You are the first responder on a production on-call rota. An alert has fired and the record above is everything the alerting system knows: how severe the symptom is, how important the affected service is, how much error budget it has left, whether anything shipped to it recently, whether an incident someone is already working covers this alert, whether it is the working day, and whether a written runbook exists. Every response costs something -- waking a person, a queue of tickets nobody reads, an automated action taken blind, a needless rollback, or a real problem going unseen. Which single response should be taken for this alert right now?\n\npage_oncall: Send a phone page to the on-call engineer. Never choose this when severity is \"sev3\". Only choose this when duplicate_of_open_incident is \"no\".\ncreate_ticket: File a ticket in the team's backlog queue. Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service. Only choose this when duplicate_of_open_incident is \"no\".\nauto_remediate: Run the alert's automated remediation script. Never choose this when service_tier is \"tier1\". Never choose this when known_runbook is \"no\".\nrollback_deploy: Revert the service to the previously deployed build. Only choose this when recent_deploy is \"yes\". Never choose this when severity is \"sev3\".\nsuppress: Silence the alert and record no follow-up work. When duplicate_of_open_incident is \"no\", choose create_ticket instead of this. Only choose this when duplicate_of_open_incident is \"yes\"."
+    },
+    "random.s1": {
+      "val": {
+        "accuracy": 0.6818181818181818,
+        "mean_margin": 0.3298863636363637,
+        "mean_confidence": 0.7906818181818182,
+        "n": 88,
+        "wrong": [
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          }
+        ]
+      },
+      "test": {
+        "accuracy": 0.7528089887640449,
+        "mean_margin": 0.4729213483146067,
+        "mean_confidence": 0.8194382022471908,
+        "n": 89,
+        "wrong": [
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          }
+        ]
+      },
+      "clauses": {
+        "page_oncall": [
+          "Only choose this when duplicate_of_open_incident is \"no\".",
+          "When duplicate_of_open_incident is \"yes\", choose suppress instead of this."
+        ],
+        "create_ticket": [
+          "Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service.",
+          "Only choose this when duplicate_of_open_incident is \"no\"."
+        ],
+        "auto_remediate": [
+          "Only choose this when the blast radius is small -- service_tier is \"tier3\", or service_tier is \"tier2\" with a sev3 symptom.",
+          "Never choose this when known_runbook is \"no\"."
+        ],
+        "rollback_deploy": [
+          "Only choose this when recent_deploy is \"yes\".",
+          "Never choose this when severity is \"sev3\"."
+        ],
+        "suppress": [
+          "When duplicate_of_open_incident is \"no\", choose page_oncall instead of this.",
+          "Only choose this when duplicate_of_open_incident is \"yes\"."
+        ]
+      },
+      "prompt": "You are the first responder on a production on-call rota. An alert has fired and the record above is everything the alerting system knows: how severe the symptom is, how important the affected service is, how much error budget it has left, whether anything shipped to it recently, whether an incident someone is already working covers this alert, whether it is the working day, and whether a written runbook exists. Every response costs something -- waking a person, a queue of tickets nobody reads, an automated action taken blind, a needless rollback, or a real problem going unseen. Which single response should be taken for this alert right now?\n\npage_oncall: Send a phone page to the on-call engineer. Only choose this when duplicate_of_open_incident is \"no\". When duplicate_of_open_incident is \"yes\", choose suppress instead of this.\ncreate_ticket: File a ticket in the team's backlog queue. Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service. Only choose this when duplicate_of_open_incident is \"no\".\nauto_remediate: Run the alert's automated remediation script. Only choose this when the blast radius is small -- service_tier is \"tier3\", or service_tier is \"tier2\" with a sev3 symptom. Never choose this when known_runbook is \"no\".\nrollback_deploy: Revert the service to the previously deployed build. Only choose this when recent_deploy is \"yes\". Never choose this when severity is \"sev3\".\nsuppress: Silence the alert and record no follow-up work. When duplicate_of_open_incident is \"no\", choose page_oncall instead of this. Only choose this when duplicate_of_open_incident is \"yes\"."
+    },
+    "random.s2": {
+      "val": {
+        "accuracy": 0.8181818181818182,
+        "mean_margin": 0.526590909090909,
+        "mean_confidence": 0.7673863636363635,
+        "n": 88,
+        "wrong": [
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "auto_remediate",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "auto_remediate",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "auto_remediate",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "auto_remediate",
+            "should_be": [
+              "create_ticket"
+            ]
+          }
+        ]
+      },
+      "test": {
+        "accuracy": 0.8764044943820225,
+        "mean_margin": 0.6392134831460672,
+        "mean_confidence": 0.822696629213483,
+        "n": 89,
+        "wrong": [
+          {
+            "chose": "create_ticket",
+            "should_be": [
+              "suppress"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "auto_remediate",
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "auto_remediate",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "rollback_deploy"
+            ]
+          },
+          {
+            "chose": "page_oncall",
+            "should_be": [
+              "create_ticket"
+            ]
+          }
+        ]
+      },
+      "clauses": {
+        "page_oncall": [
+          "Never choose this when duplicate_of_open_incident is \"yes\".",
+          "Never choose this when severity is \"sev3\"."
+        ],
+        "create_ticket": [
+          "Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service.",
+          "Only choose this when duplicate_of_open_incident is \"no\"."
+        ],
+        "auto_remediate": [
+          "Never choose this when known_runbook is \"no\".",
+          "Only choose this when known_runbook is \"yes\"."
+        ],
+        "rollback_deploy": [
+          "Never choose this when severity is \"sev3\".",
+          "Only choose this when recent_deploy is \"yes\"."
+        ],
+        "suppress": [
+          "When duplicate_of_open_incident is \"no\", choose create_ticket instead of this.",
+          "Only choose this when duplicate_of_open_incident is \"yes\"."
+        ]
+      },
+      "prompt": "You are the first responder on a production on-call rota. An alert has fired and the record above is everything the alerting system knows: how severe the symptom is, how important the affected service is, how much error budget it has left, whether anything shipped to it recently, whether an incident someone is already working covers this alert, whether it is the working day, and whether a written runbook exists. Every response costs something -- waking a person, a queue of tickets nobody reads, an automated action taken blind, a needless rollback, or a real problem going unseen. Which single response should be taken for this alert right now?\n\npage_oncall: Send a phone page to the on-call engineer. Never choose this when duplicate_of_open_incident is \"yes\". Never choose this when severity is \"sev3\".\ncreate_ticket: File a ticket in the team's backlog queue. Never choose this when customers are being hurt -- severity is \"sev1\", or severity is \"sev2\" on a tier1 service. Only choose this when duplicate_of_open_incident is \"no\".\nauto_remediate: Run the alert's automated remediation script. Never choose this when known_runbook is \"no\". Only choose this when known_runbook is \"yes\".\nrollback_deploy: Revert the service to the previously deployed build. Never choose this when severity is \"sev3\". Only choose this when recent_deploy is \"yes\".\nsuppress: Silence the alert and record no follow-up work. When duplicate_of_open_incident is \"no\", choose create_ticket instead of this. Only choose this when duplicate_of_open_incident is \"yes\"."
+    },
+    "random.mean": {
+      "val": {
+        "accuracy": 0.7575757575757577,
+        "mean_margin": 0.45018939393939394,
+        "mean_confidence": 0.7799621212121212
+      },
+      "test": {
+        "accuracy": 0.8277153558052435,
+        "mean_margin": 0.580823970037453,
+        "mean_confidence": 0.8192883895131086
+      }
+    }
+  },
+  "jev_calls": 708,
+  "spend_usd": 0.02197
+}
