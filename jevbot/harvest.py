@@ -119,7 +119,8 @@ def edge_cases() -> list[dict]:
                     "along_left_right_axis": "far to the left of the gripper"},
              gripper_is_horizontally_over_the_apple="no",
              last_action="move_forward",
-             last_action_result="the arm could not move there -- it is at its reach limit"),
+             last_action_result="the arm could not move there -- it is at"
+                                " its reach limit"),
         base(where={"along_forward_back_axis": "slightly forward of the gripper",
                     "along_left_right_axis": "lined up",
                     "height": "level with the gripper"},

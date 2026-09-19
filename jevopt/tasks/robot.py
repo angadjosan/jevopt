@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+from importlib import resources
 
 from ..conditions import derive
 from ..task import Condition, Task
@@ -108,8 +109,19 @@ EXTRA_CONDITIONS: list[Condition] = [
 # ------------------------------------------------------------------- build
 
 
-def _resolve(path: str) -> str:
-    return path if os.path.exists(path) else os.path.join(REPO_ROOT, path)
+def _read(path: str) -> str:
+    """The dataset, whether this is a source checkout or an installed package.
+
+    A relative path is tried as given and against the repo root, so running
+    from anywhere in a checkout works; failing both, the file is read out of
+    the installed `jevopt` package's data directory.
+    """
+    for candidate in (path, os.path.join(REPO_ROOT, path)):
+        if os.path.exists(candidate):
+            with open(candidate) as fh:
+                return fh.read()
+    return (resources.files("jevopt")
+            .joinpath("data").joinpath(os.path.basename(path)).read_text())
 
 
 def load_instances(path: str = DATASET) -> list[dict]:
@@ -119,8 +131,7 @@ def load_instances(path: str = DATASET) -> list[dict]:
     val/test boundaries would only constrain it for no benefit -- and the old
     boundaries were drawn per instance, which leaks across identical states.
     """
-    with open(_resolve(path)) as fh:
-        data = json.load(fh)
+    data = json.loads(_read(path))
     return [{"state": row["state"], "acceptable": list(row["acceptable"]),
              "source": row.get("source", "")}
             for split in ("train", "val", "test") for row in data[split]]

@@ -157,7 +157,7 @@ def grid(per_label: int = 48, seed: int = 0) -> list[dict]:
     pool: dict[str, list[dict]] = {}
     for values in itertools.product(SEVERITY, SERVICE_TIER, ERROR_BUDGET,
                                     YES_NO, YES_NO, YES_NO, YES_NO):
-        state = dict(zip(FIELDS, values))
+        state = dict(zip(FIELDS, values, strict=True))
         good = acceptable(state)
         pool.setdefault("+".join(good), []).append(
             {"state": state, "acceptable": good, "source": "grid"})

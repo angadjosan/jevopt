@@ -18,9 +18,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from . import client
-
-from . import grammar
+from . import client, grammar
 from .evidence import MIN_STRENGTH, Evidence
 from .task import Task
 

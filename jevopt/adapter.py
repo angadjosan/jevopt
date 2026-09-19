@@ -18,9 +18,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from gepa.core.adapter import EvaluationBatch
 
-from . import client
-
-from . import grammar
+from . import client, grammar
 from .task import Task
 
 WORKERS = 16

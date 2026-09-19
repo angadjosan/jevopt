@@ -17,13 +17,27 @@ from .sim import ACTIONS
 
 # (name, numeric state, worded state, expected action)
 CASES = [
-    ("apple far forward", (0.25, 0.0, -0.15), ("far forward of the gripper", "lined up", "below the gripper", "no", "no"), "move_forward"),
-    ("apple far left", (0.0, 0.20, -0.15), ("lined up", "far to the left of the gripper", "below the gripper", "no", "no"), "move_left"),
-    ("apple far right", (0.0, -0.20, -0.15), ("lined up", "far to the right of the gripper", "below the gripper", "no", "no"), "move_right"),
-    ("apple far behind", (-0.18, 0.0, -0.15), ("far behind the gripper", "lined up", "below the gripper", "no", "no"), "move_back"),
-    ("apple slightly left", (0.0, 0.04, -0.15), ("lined up", "slightly to the left of the gripper", "below the gripper", "no", "no"), "move_left"),
-    ("over it, too high", (0.0, 0.0, -0.15), ("lined up", "lined up", "below the gripper", "yes", "no"), "descend"),
-    ("over it, at height", (0.0, 0.0, -0.005), ("lined up", "lined up", "level with the gripper", "yes", "yes"), "close_gripper"),
+    ("apple far forward", (0.25, 0.0, -0.15),
+     ("far forward of the gripper", "lined up", "below the gripper", "no", "no"),
+     "move_forward"),
+    ("apple far left", (0.0, 0.20, -0.15),
+     ("lined up", "far to the left of the gripper", "below the gripper", "no", "no"),
+     "move_left"),
+    ("apple far right", (0.0, -0.20, -0.15),
+     ("lined up", "far to the right of the gripper", "below the gripper", "no", "no"),
+     "move_right"),
+    ("apple far behind", (-0.18, 0.0, -0.15),
+     ("far behind the gripper", "lined up", "below the gripper", "no", "no"),
+     "move_back"),
+    ("apple slightly left", (0.0, 0.04, -0.15),
+     ("lined up", "slightly to the left of the gripper", "below the gripper", "no", "no"),
+     "move_left"),
+    ("over it, too high", (0.0, 0.0, -0.15),
+     ("lined up", "lined up", "below the gripper", "yes", "no"),
+     "descend"),
+    ("over it, at height", (0.0, 0.0, -0.005),
+     ("lined up", "lined up", "level with the gripper", "yes", "yes"),
+     "close_gripper"),
 ]
 
 

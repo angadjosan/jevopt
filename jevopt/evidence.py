@@ -32,8 +32,10 @@ class Evidence:
         self.states = [i["state"] for i in instances]
         self.good = [set(i["acceptable"]) for i in instances]
         self.truth = {c.id: [c.holds(s) for s in self.states] for c in task.conditions}
-        self.pos = {o: [i for i, g in enumerate(self.good) if o in g] for o in task.options}
-        self.neg = {o: [i for i, g in enumerate(self.good) if o not in g] for o in task.options}
+        self.pos = {o: [i for i, g in enumerate(self.good) if o in g]
+                    for o in task.options}
+        self.neg = {o: [i for i, g in enumerate(self.good) if o not in g]
+                    for o in task.options}
 
     def _rate(self, cid: str, rows: list[int]) -> float:
         if not rows:
@@ -83,6 +85,8 @@ class Evidence:
                 if grammar.render_clause(self.task, template, condition.id) == clause:
                     return self.score(option, template, condition.id, None) or 0.0
             for other in self.task.options:
-                if grammar.render_clause(self.task, "prefer", condition.id, other) == clause:
+                rendered = grammar.render_clause(
+                    self.task, "prefer", condition.id, other)
+                if rendered == clause:
                     return self.score(option, "prefer", condition.id, other) or 0.0
         return 0.0

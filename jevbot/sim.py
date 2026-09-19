@@ -105,7 +105,7 @@ class ArmWorld:
 
         # A neutral, elbow-up pose with the hand above the table.
         self.rest = [0.0, -0.45, 0.0, -2.0, 0.0, 1.6, 0.785]
-        for i, angle in zip(ARM_JOINTS, self.rest):
+        for i, angle in zip(ARM_JOINTS, self.rest, strict=True):
             p.resetJointState(self.robot, i, angle)
         for finger in FINGERS:
             p.resetJointState(self.robot, finger, FINGER_OPEN)

@@ -13,7 +13,14 @@ MODEL = "typesafe/jev-1.13"
 
 
 class JevError(RuntimeError):
-    pass
+    """A decisions call that did not come back. `code` and `body` are the HTTP
+    status and raw response body when the failure was an HTTP error."""
+
+    def __init__(self, message: str, *, code: int | None = None,
+                 body: str = "") -> None:
+        super().__init__(message)
+        self.code = code
+        self.body = body
 
 
 def api_key() -> str:
@@ -51,7 +58,8 @@ def ask(state, questions: dict, model: str = MODEL, retries: int = 4) -> dict:
                 time.sleep(delay)
                 delay *= 2
                 continue
-            raise JevError(f"HTTP {exc.code}: {body}") from exc
+            raise JevError(f"HTTP {exc.code}: {body}",
+                           code=exc.code, body=body) from exc
         except urllib.error.URLError as exc:
             if attempt < retries:
                 time.sleep(delay)

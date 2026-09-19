@@ -43,7 +43,7 @@ def measure(adapter: JevAdapter, candidate: dict, instances: list) -> dict:
     }
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--task", default="jevopt.tasks.robot",
                         help="dotted path to a module exposing build() -> Task")
@@ -54,11 +54,13 @@ def main() -> None:
                         help="ablation: take the statistically strongest repair "
                              "instead of letting Jev pick among the shortlist")
     parser.add_argument("--no-merge", action="store_true")
-    parser.add_argument("--out", help="evolved prompt text (default: runs/<task>.prompt.txt)")
-    parser.add_argument("--results", help="results JSON (default: runs/<task>.results.json)")
+    parser.add_argument("--out",
+                        help="evolved prompt text (default: runs/<task>.prompt.txt)")
+    parser.add_argument("--results",
+                        help="results JSON (default: runs/<task>.results.json)")
     parser.add_argument("--seed", type=int, default=0,
                         help="seeds both the train/val/test split and the search")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     task = load_task(args.task)
     out = args.out or f"runs/{task.name}.prompt.txt"
@@ -116,7 +118,8 @@ def main() -> None:
     with open(results_path, "w") as fh:
         json.dump({"task": task.name, "report": report, "mutations": mutator.log,
                    "evolved": evolved,
-                   "jev_calls": adapter.calls, "split_seed": args.seed, "spend_usd": round(adapter.spend, 5)},
+                   "jev_calls": adapter.calls, "split_seed": args.seed,
+                   "spend_usd": round(adapter.spend, 5)},
                   fh, indent=2)
     print(f"\nevolved prompt -> {out}\nresults -> {results_path}")
 

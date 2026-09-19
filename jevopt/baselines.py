@@ -83,18 +83,19 @@ def _summary(picks: dict[str, list[dict]]) -> dict[str, list[str]]:
     return {option: [row["clause"] for row in rows] for option, rows in picks.items()}
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--task", default="jevopt.tasks.robot",
                         help="dotted path to a module exposing build() -> Task")
     parser.add_argument("--k", type=int, default=2, help="clauses attached per option")
     parser.add_argument("--random-seeds", type=int, default=3)
-    parser.add_argument("--out", help="results JSON (default: runs/<task>.baselines.json)")
+    parser.add_argument("--out",
+                        help="results JSON (default: runs/<task>.baselines.json)")
     parser.add_argument("--limit", type=int, default=0,
                         help="truncate val/test to this many instances (0 = all)")
     parser.add_argument("--seed", type=int, default=0,
                         help="split seed; must match the run being compared against")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     task = load_task(args.task)
     out = args.out or f"runs/{task.name}.baselines.json"

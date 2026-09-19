@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jevopt"
+version = "0.1.0"
+description = "Evolve the option descriptions of a typesafe/jev-1.13 choice question from labelled states."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["gepa"]
+
+[project.optional-dependencies]
+# The PyBullet robot demo in jevbot/ is not part of the tool; it is installable
+# alongside it for anyone who wants to regenerate the robot states.
+robot = ["pybullet", "numpy", "pillow"]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+jevopt = "jevopt.cli:main"
+
+[tool.setuptools]
+packages = ["jevopt", "jevopt.tasks"]
+
+[tool.setuptools.package-data]
+jevopt = ["data/*.json"]
+
+[tool.ruff]
+line-length = 90
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

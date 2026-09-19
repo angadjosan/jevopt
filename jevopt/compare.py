@@ -48,7 +48,9 @@ def wilson(successes: int, n: int, z: float = Z95) -> tuple[float, float]:
     denom = 1.0 + z * z / n
     centre = (p + z * z / (2 * n)) / denom
     half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
-    return max(0.0, centre - half), min(1.0, centre + half)
+    # At p = 0 or 1 the arithmetic leaves a rounding crumb (~1e-18) on the wrong
+    # side of the estimate, so clamp against p as well as against [0, 1].
+    return max(0.0, min(p, centre - half)), min(1.0, max(p, centre + half))
 
 
 def mcnemar_exact(a: list[bool], b: list[bool]) -> tuple[int, int, float]:
@@ -57,8 +59,8 @@ def mcnemar_exact(a: list[bool], b: list[bool]) -> tuple[int, int, float]:
     nothing about which is better and are excluded -- that exclusion is the
     whole source of the extra power. Under the null the b+c discordances are
     fair coin flips, so the two-sided exact p is twice the tail at min(b, c)."""
-    nb = sum(1 for x, y in zip(a, b) if x and not y)
-    nc = sum(1 for x, y in zip(a, b) if y and not x)
+    nb = sum(1 for x, y in zip(a, b, strict=True) if x and not y)
+    nc = sum(1 for x, y in zip(a, b, strict=True) if y and not x)
     n = nb + nc
     if n == 0:
         return nb, nc, 1.0                      # no disagreement, no evidence
@@ -140,21 +142,24 @@ def pct(x: float) -> str:
     return f"{100 * x:+6.1f}"
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     add = parser.add_argument
     add("--task", default="jevopt.tasks.robot", help="module exposing build() -> Task")
     add("--split-seed", type=int, default=0, help="must match the seed the runs used")
     add("--candidate", action="append", default=[], metavar="NAME=PATH",
         help="evolved arm from a results JSON's 'evolved' key; repeatable")
-    add("--greedy", type=int, default=0, help="clauses/option for a greedy arm (0 = skip)")
+    add("--greedy", type=int, default=0,
+        help="clauses/option for a greedy arm (0 = skip)")
     add("--random-seeds", type=int, default=0, help="how many random-clause control arms")
-    add("--random-k", type=int, default=2, help="clauses/option for random arms if no --greedy")
+    add("--random-k", type=int, default=2,
+        help="clauses/option for random arms if no --greedy")
     add("--bootstrap", type=int, default=10000, help="paired resamples (0 = skip)")
     add("--bootstrap-seed", type=int, default=0)
-    add("--limit", type=int, default=0, help="truncate the test set, for cheap smoke runs")
+    add("--limit", type=int, default=0,
+        help="truncate the test set, for cheap smoke runs")
     add("--out", help="JSON with the raw per-instance vectors, for re-analysis")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     task = load_task(args.task)
     train, _val, test = task.split(seed=args.split_seed)
@@ -184,7 +189,8 @@ def main() -> None:
           "NOT the\ntest: the pairwise rows are, because every arm saw these same "
           "instances.\n")
 
-    draws = draw_resamples(n, args.bootstrap, args.bootstrap_seed) if args.bootstrap else []
+    draws = (draw_resamples(n, args.bootstrap, args.bootstrap_seed)
+             if args.bootstrap else [])
     boots = {name: (boot_means([float(c) for c in row["correct"]], draws),
                     boot_means(row["margins"], draws))
              for name, row in results.items()} if draws else {}
@@ -199,12 +205,14 @@ def main() -> None:
                      "margin_diff": results[a]["mean_margin"] - results[b]["mean_margin"]}
             if draws:
                 for key, col in (("accuracy_diff_ci95", 0), ("margin_diff_ci95", 1)):
+                    left, right = boots[a][col], boots[b][col]
                     entry[key] = list(percentile_ci(
-                        [x - y for x, y in zip(boots[a][col], boots[b][col])]))
+                        [x - y for x, y in zip(left, right, strict=True)]))
             pairs.append(entry)
 
-    print(f"{'pair':{2 * width + 4}s} {'acc d':>6s} {'b':>4s} {'c':>4s} {'McNemar p':>10s} "
-          f"{'paired 95% CI on acc d':>24s} {'margin d':>9s} {'verdict':>9s}")
+    print(f"{'pair':{2 * width + 4}s} {'acc d':>6s} {'b':>4s} {'c':>4s} "
+          f"{'McNemar p':>10s} {'paired 95% CI on acc d':>24s} {'margin d':>9s} "
+          f"{'verdict':>9s}")
     for e in pairs:
         ci = e.get("accuracy_diff_ci95")
         ci_s = f"[{pct(ci[0])},{pct(ci[1])}] pt" if ci else f"{'--':>24s}"
@@ -221,7 +229,8 @@ def main() -> None:
         lead = ("they tie outright" if gap == 0 else
                 f"the {abs(gap):.1f}pt lead for {e['a'] if gap > 0 else e['b']}")
         print(f"  NOT DISTINGUISHABLE: {e['a']} vs {e['b']} -- {lead}, on "
-              f"{e['b_count']}/{e['c_count']} discordant instances (p={e['mcnemar_p']:.3f})."
+              f"{e['b_count']}/{e['c_count']} discordant instances "
+              f"(p={e['mcnemar_p']:.3f})."
               f" This data cannot order them; the sign is not evidence.")
     print(f"\nWith {len(pairs)} pairs tested at once, expect ~{ALPHA * len(pairs):.1f} "
           f"false positives by chance; treat a lone p just under 0.05 as weak."
