@@ -1,0 +1,11 @@
+A robot arm with a two-finger gripper is working over a table. The task is to pick up an apple: move the open gripper until it is horizontally over the apple, lower it to the apple's height, close the fingers on the apple, then raise it so the apple is held high above the table. The state describes where the apple is relative to the gripper, as seen by a camera. Which single action should the arm take right now to make progress toward holding the apple in the air?
+
+move_forward: Move the gripper 3cm in +x (away from the robot base).
+move_back: Move the gripper 3cm in -x (back toward the robot base). Never choose this when the gripper is at the right height to grip.
+move_left: Move the gripper 3cm in +y (to the left from the base's view).
+move_right: Move the gripper 3cm in -y (to the right from the base's view). Never choose this when the apple is to the left of the gripper. When the gripper is at the right height to grip, choose ascend instead of this.
+descend: Lower the gripper 2.5cm in -z, toward the table. Never choose this when the fingers are closed. Never choose this when the apple is forward of the gripper. Never choose this when the gripper is not yet horizontally over the apple.
+ascend: Raise the gripper 2.5cm in +z, away from the table.
+open_gripper: Open the fingers fully. Releases anything held. When the apple is behind the gripper, choose done instead of this. When the apple is forward of the gripper, choose done instead of this.
+close_gripper: Close the fingers to grip whatever is between them.
+done: Declare the apple picked up and stop.

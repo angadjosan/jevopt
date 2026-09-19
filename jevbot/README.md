@@ -109,6 +109,14 @@ the decisive moments it goes hard: `close_gripper` 1.00, `ascend` 1.00,
 `done` 0.97. The `holding` noul flips 0.03 → 0.87 on the step the fingers
 actually close, without ever being told the grasp succeeded.
 
+## Optimising the prompt with GEPA
+
+`jevbot/evolve/` runs GEPA over these action criteria with a mutation operator
+that never generates text — Jev's own probability distributions do the credit
+assignment, and Jev picks the repairs. From the naive seed it reaches 72.3% on
+held-out test against 59.6% seeded and 83.0% hand-tuned, for $0.10.
+See [`jevbot/evolve/README.md`](evolve/README.md).
+
 ## Caveats
 
 - One fixed camera, one apple, no clutter and no occlusion. The red-blob
