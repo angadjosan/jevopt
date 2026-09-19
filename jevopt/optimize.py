@@ -116,7 +116,7 @@ def main() -> None:
     with open(results_path, "w") as fh:
         json.dump({"task": task.name, "report": report, "mutations": mutator.log,
                    "evolved": evolved,
-                   "jev_calls": adapter.calls, "spend_usd": round(adapter.spend, 5)},
+                   "jev_calls": adapter.calls, "split_seed": args.seed, "spend_usd": round(adapter.spend, 5)},
                   fh, indent=2)
     print(f"\nevolved prompt -> {out}\nresults -> {results_path}")
 
