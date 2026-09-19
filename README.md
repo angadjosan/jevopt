@@ -1,136 +1,150 @@
-# Jev playground
+# jevopt
 
-A dependency-free Python CLI for poking at [`typesafe/jev-1.13`](https://openrouter.ai/typesafe/jev-1.13)
-through OpenRouter.
+Prompt optimisation for [`typesafe/jev-1.13`](https://openrouter.ai/typesafe/jev-1.13),
+a decision model that returns a typed choice instead of text.
 
-## Jev is not a chat model
+Jev picks one option from a list you define. How well it picks depends heavily
+on how each option is described, and writing those descriptions is hand-work.
+`jevopt` evolves them for you, from labelled examples — **with no
+text-generating model anywhere in the loop.**
 
-Jev is TypeSafe's "System One" decision model. It does not write prose — it
-evaluates a piece of **state** against typed **questions** and returns structured
-answers with calibrated probabilities. Sending it to `/chat/completions` gets you:
+```sh
+pip install -e .
+export OPENROUTER=sk-or-...
 
+jevopt optimize --task jevopt.tasks.triage     # evolve the option descriptions
+jevopt compare  --task jevopt.tasks.triage --candidate gepa=runs/triage.results.json
+jevopt report   --task jevopt.tasks.triage "run=runs/triage.results.json"
+jevopt ask "Payouts have failed for 3 days" --noul 'urgent: Is this urgent?'
 ```
-typesafe/jev-1.13 is a decisions model and cannot be used with the
-chat/completions endpoint. Use the /api/alpha/decisions endpoint instead.
-```
 
-So this CLI talks to `POST https://openrouter.ai/api/alpha/decisions`, whose body
-is the [TypeSafe System One schema](https://docs.typesafe.ai/api) with an
-OpenRouter model slug.
+## The problem this solves
 
-There are three question types (*primitives*):
+[GEPA](https://github.com/gepa-ai/gepa) evolves prompts by handing failure
+traces to a language model and asking it to write something better. Jev cannot
+write anything — System One models return typed decisions, not prose — so the
+usual recipe needs a second, generative model bolted on.
 
-| Type | Asks | Returns |
+This replaces only the mutation operator and keeps GEPA's engine (Pareto front,
+minibatch acceptance, candidate pool) via its `custom_candidate_proposer` hook.
+Mutation splits three ways, each part going to whatever can actually do it:
+
+| step | who | what |
 | --- | --- | --- |
-| `noul` | a yes/no question | probability that the answer is yes |
-| `choice` | pick one of N options | the pick, a probability per option, confidence |
-| `score` | rate against ordered levels | a weighted score, a probability per level, confidence |
+| evidence | code | Jev returns a full distribution, so *confusion mass* over failures names which two options failed to separate. A search over conditions read off the state schema finds ones that discriminate them. |
+| judgement | **Jev** | a `choice` question picks which shortlisted repair to apply — the mutation decision is itself a Jev decision |
+| edit | code | the chosen clause is composed into that option's text |
 
-## Setup
+New wording comes from a grammar — conditions derived from your states, crossed
+with `only` / `never` / `prefer` templates. Nothing in it encodes which option is
+correct; finding the binding is the search problem. The artifact is readable
+prompt text you can diff against the seed.
 
-```sh
-export OPENROUTER=sk-or-...        # OPENROUTER_API_KEY also works
+Scoring uses **margin** (`p(best acceptable) − p(best unacceptable)`) rather than
+accuracy: positive exactly when the pick is right, but it keeps moving while a
+candidate is still wrong, so the search has something to climb.
+
+## Results
+
+Two tasks, each from a deliberately naive seed. Held-out test accuracy, n=89,
+split so no situation appears in more than one split.
+
+| | naive seed | **evolved** | hand-written | random clauses |
+| --- | ---: | ---: | ---: | ---: |
+| alert triage | 67.4% | **87.6%** | 97.8% | 81.1% |
+| robot arm | 52.8% | **78.7%** | 79.8% | 82.2% |
+
+On triage it evolved this, from an option description that had said only
+"automatically apply the runbook remediation":
+
+> **auto_remediate** — Only choose this when the blast radius is small: tier3, or
+> tier2 with a sev3 symptom. Never when `service_tier` is "tier1". Never when
+> `known_runbook` is "no".
+
+Those are the real labelling rules, recovered from failure statistics alone.
+
+**Read the caveats.** A search-free control — attach two *random* sound clauses
+per option — is the arm to beat, and it is genuinely competitive. On triage the
+search wins (better on 8 of 10 seeds, worse on none, sign test p=0.008). On the
+robot it does not (2 of 10, p=0.18). A careful human still beats it on triage by
+10 points. See [`docs/findings.md`](docs/findings.md) and the
+[pre-registration](docs/preregistration.md), written before the confirmatory run.
+
+## Defining a task
+
+A task is options, labelled states, and the vocabulary of conditions a clause
+may mention. Conditions are derived from the states themselves — no grammar to
+hand-write.
+
+```python
+from jevopt import Task, derive
+
+instances = [{"state": {"severity": "sev1", "tier": "tier1"},
+              "acceptable": ["page_oncall"]}, ...]
+
+def build() -> Task:
+    return Task(
+        name="triage",
+        instructions="Decide what to do with this production alert.",
+        options={"page_oncall": "Wake the on-call engineer.", ...},
+        instances=instances,
+        conditions=derive(instances),
+        reference=None,          # optional human-written arm to measure against
+    )
 ```
 
-Python 3.10+ is the only requirement; the script uses nothing outside the stdlib.
+Point any command at it with `--task your.module`. States must be JSON objects
+of low-cardinality values — the grammar enumerates fields, so free text will not
+work.
 
-## Use
+## Commands
 
-Confirm the model answers before spending anything (this sends one tiny question,
-because decision models are not listed in OpenRouter's `/models` catalogue):
-
-```sh
-./jev.py --check
-```
-
-Ask it something:
-
-```sh
-./jev.py "Help! My payouts have been failing for 3 days." \
-    --noul   'urgent: Does this convey urgency?' \
-    --choice 'team: Which team should handle this? = billing | technical | sales' \
-    --score  'mood: How frustrated is the customer? = Calm | Frustrated | Very angry'
-```
-
-```
-urgent  (noul)
-    ███████████████████████·    96%  yes
-
-team  (choice) -> billing   [confidence 0.90]
-    ██████████████████████··    93%  billing
-    ██······················     7%  technical
-    ························     0%  sales
-
-mood  (score) -> 1.56 / 2  Very angry   [confidence 0.34]
-    █████████████···········    56%  2  Very angry
-    ███████████·············    44%  1  Frustrated
-    ························     0%  0  Calm
-```
-
-Note the low confidence on `mood`: the probability mass is split between two
-adjacent levels. That second axis is the point of the model — the answer tells
-you *what*, the confidence tells you *whether to act*.
-
-### Question syntax
-
-```
---noul   'name: instructions'
---choice 'name: instructions = option | option: rubric | ...'
---score  'name: instructions = lowest level | ... | highest level'
-```
-
-All three are repeatable, and answers come back under the names you choose.
-Choice options may carry a `: rubric` describing when they apply; score levels
-must be listed low to high. Since `:` and `=` and `|` are separators, anything
-fiddlier is better written as JSON and passed with `--questions`.
-
-### State
-
-State is a plain string by default, but Jev also accepts JSON objects and
-arrays — useful for chat logs and records:
-
-```sh
-./jev.py --state-file conversation.json --json-state --questions questions.json
-cat ticket.txt | ./jev.py --noul 'refund: Is a refund being requested?'
-```
-
-`--questions FILE` takes a raw JSON map of question id to question object, which
-gives you everything the API supports (`criteria` on nouls, structured
-instructions) without fighting the shorthand.
-
-## Options
-
-| Flag | Meaning |
+| | |
 | --- | --- |
-| `--noul`, `--choice`, `--score` | add a question (repeatable) |
-| `--questions FILE` | raw JSON questions map (`-` for stdin) |
-| `--state-file FILE` | read state from a file (`-` for stdin) |
-| `--json-state` | parse the state as JSON and send it structured |
-| `--model` | model slug (default `typesafe/jev-1.13`) |
-| `--json` | print the raw API response |
-| `-v` | print resolved model, token usage and cost to stderr |
-| `--check` | probe the model with one cheap question and exit |
+| `jevopt optimize` | evolve a task's option descriptions |
+| `jevopt baselines` | greedy and random clause controls, no search |
+| `jevopt compare` | paired comparison of arms on shared instances — McNemar plus a paired bootstrap |
+| `jevopt report` | results JSON to markdown |
+| `jevopt ask` | ask Jev noul/choice/score questions straight from the shell |
 
-`OPENROUTER_BASE_URL` overrides the API root (default `https://openrouter.ai/api`).
+`compare` exists because unpaired accuracy on this much data has a ±10 point
+interval, wider than most differences worth arguing about. Every arm answers the
+same instances, so the comparison is paired.
 
-## Cost
+## Layout
 
-Jev charges for input only — output is free, since it returns a handful of
-typed values rather than generated text. A three-question call over a short
-ticket ran 408 input / 69 output tokens for $0.000017.
+```
+jevopt/        the tool — no simulator, no domain
+  task.py        Task and Condition: options, labelled states, vocabulary
+  conditions.py  derive conditions from states
+  grammar.py     clause templates and rendering
+  evidence.py    gates and discriminative scoring, no model calls
+  proposer.py    the mutation operator
+  adapter.py     GEPA adapter, margin scoring
+  optimize.py baselines.py compare.py report.py ask.py cli.py
+  tasks/         robot.py, triage.py
+jevbot/        optional robot demo — pip install -e ".[robot]"
+tests/         105 tests, no network
+runs/          recorded experiment artifacts
+```
 
-## Robot arm demo
+## Known characteristics
 
-`jevbot/` has Jev flying a robot arm: every tool call the arm exposes is an
-option in one `choice` question, and Jev picks the next action each control
-step until the apple is off the table. 6/6 placements, ~$0.001 per pick.
-See [`jevbot/README.md`](jevbot/README.md).
+- **The grammar bounds the search.** It can only say things its templates and
+  conditions can express; it will not invent phrasing, which is what a
+  generative reflector is for.
+- **Thin evidence produces junk.** Options with few positive examples are
+  refused outright by the gate rather than given a rule fitted to three cases.
+- At equal strength the shortlist tie-breaks alphabetically, which favours
+  `Never ...` over the equivalent `Only ...`. Harmless but it makes evolved
+  prompts read more negatively than they need to.
+- Recorded results in `runs/` were produced by the code as committed; re-running
+  `jevbot.harvest` would regenerate the robot states and invalidate them.
 
-![the arm picking up an apple](docs/episode.png)
+## Development
 
-## Further reading
-
-- [TypeSafe HTTP API reference](https://docs.typesafe.ai/api)
-- [Primitives](https://docs.typesafe.ai/primitives) — the three question types in depth
-- [Confidence](https://docs.typesafe.ai/confidence) — why it is not the same as probability
-- [Known jagged edges in jev-1.13](https://docs.typesafe.ai/model-jaggedness/jev-1.13)
+```sh
+pip install -e ".[dev]"
+pytest -q
+ruff check .
+```
