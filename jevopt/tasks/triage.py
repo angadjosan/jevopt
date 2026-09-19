@@ -1,9 +1,10 @@
-"""Production alert triage -- the optimiser's second, deliberately non-robotic task.
+"""Production alert triage -- the worked example task.
 
-The prompt optimiser in `jevopt/` was extracted from a robot-arm demo, and a
-method that only ever ran on one domain proves nothing about the method. So this
-task has no geometry, no simulator and no physics: an on-call engineer reads a
-structured alert record and decides what to do about it.
+An on-call engineer reads a structured alert record and decides what to do about
+it. It is here to be a realistic decision with a policy worth learning, and to
+show what a Task looks like end to end: options with deliberately weak seed
+descriptions, labelled states, a condition vocabulary derived from those states,
+and a hand-written reference arm to measure the optimiser against.
 
 The state is a small JSON incident record of seven low-cardinality categorical
 fields, which `conditions.derive` enumerates into a grammar for free. The labels

@@ -67,8 +67,8 @@ class Evidence:
     def shape(self, template: str, cid: str) -> tuple:
         """Which train states a clause would still permit the option on.
 
-        "Never choose this when the gripper is high" and "Only choose this when
-        the gripper is not high" are the same constraint, and the grammar can
+        "Never choose this when severity is high" and "Only choose this when
+        severity is not high" are the same constraint, and the grammar can
         produce both. Shortlisting both wastes a slot and narrows what Jev is
         actually choosing between, so they are collapsed by the states they
         allow. A "prefer" clause constrains identically but also names the

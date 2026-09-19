@@ -54,17 +54,19 @@ def test_an_under_evidenced_option_yields_no_clause(synthetic_task, synthetic_ev
                                     partner, synthetic_task.options["delta"]) == []
 
 
-def test_the_gate_holds_on_a_thin_real_option(robot_task):
-    """Same gate on real data: the robot's train split barely sees close_gripper."""
-    train, _val, _test = robot_task.split(seed=0)
-    evidence = Evidence(robot_task, train)
-    thin = [o for o in robot_task.options if len(evidence.pos[o]) < MIN_POSITIVES]
-    assert thin, "no under-evidenced option in this split -- the gate is untested"
-    for option in thin:
-        for partner in robot_task.options:
-            out = P._candidate_clauses(robot_task, evidence, option, partner,
-                                       robot_task.options[option])
-            assert out == [], f"{option}: {len(evidence.pos[option])} positives -> {out}"
+def test_every_well_evidenced_real_option_gets_a_shortlist(real_task):
+    """The gate's other side, on real data: an option the training split sees
+    plenty of must not be silently starved of candidate repairs."""
+    train, _val, _test = real_task.split(seed=0)
+    evidence = Evidence(real_task, train)
+    for option in real_task.options:
+        if len(evidence.pos[option]) < MIN_POSITIVES:
+            continue
+        shortlists = [P._candidate_clauses(real_task, evidence, option, partner,
+                                           real_task.options[option])
+                      for partner in real_task.options if partner != option]
+        assert any(shortlists), (
+            f"{option}: {len(evidence.pos[option])} positives but no clause anywhere")
 
 
 def test_a_partner_without_evidence_blocks_a_prefer_clause(synthetic_task,

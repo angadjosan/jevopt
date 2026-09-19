@@ -85,7 +85,7 @@ def _summary(picks: dict[str, list[dict]]) -> dict[str, list[str]]:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--task", default="jevopt.tasks.robot",
+    parser.add_argument("--task", default="jevopt.tasks.triage",
                         help="dotted path to a module exposing build() -> Task")
     parser.add_argument("--k", type=int, default=2, help="clauses attached per option")
     parser.add_argument("--random-seeds", type=int, default=3)

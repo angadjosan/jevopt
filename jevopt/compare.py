@@ -16,7 +16,7 @@ So: per-arm accuracy with a Wilson interval (the honest marginal uncertainty,
 which stays wide), then McNemar's exact test and a paired bootstrap per pair --
 the actual evidence about differences. Stdlib only, no normal approximations.
 
-    python3 -m jevopt.compare --candidate gepa=runs/robot.results.json --greedy 2
+    python3 -m jevopt.compare --candidate gepa=runs/triage.results.json --greedy 2
 """
 
 from __future__ import annotations
@@ -145,7 +145,7 @@ def pct(x: float) -> str:
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     add = parser.add_argument
-    add("--task", default="jevopt.tasks.robot", help="module exposing build() -> Task")
+    add("--task", default="jevopt.tasks.triage", help="module exposing build() -> Task")
     add("--split-seed", type=int, default=0, help="must match the seed the runs used")
     add("--candidate", action="append", default=[], metavar="NAME=PATH",
         help="evolved arm from a results JSON's 'evolved' key; repeatable")

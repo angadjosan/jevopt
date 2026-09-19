@@ -226,7 +226,7 @@ def main(argv=None) -> None:
     add = parser.add_argument
     add("runs", nargs="*", metavar="NAME=PATH",
         help="results JSON from jevopt.optimize; repeatable")
-    add("--task", default="jevopt.tasks.robot", help="dotted path to a module "
+    add("--task", default="jevopt.tasks.triage", help="dotted path to a module "
         "exposing build() -> Task; needed to tell added clauses from the seed text")
     add("--compare", action="append", default=[], metavar="NAME=PATH",
         help="comparison JSON from jevopt.compare; repeatable")

@@ -1,5 +1,9 @@
 # Pre-registration: does the search earn its keep?
 
+> **Note added later.** The second task referred to throughout ("the robot") has
+> since been removed from this repo. This document is left exactly as written,
+> because a pre-registration edited after seeing the results is not one.
+
 Written before looking at any triage result. The robot numbers are already seen,
 so everything below about the robot is exploratory by construction; triage is
 the confirmatory test.

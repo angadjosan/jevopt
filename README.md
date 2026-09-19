@@ -49,16 +49,15 @@ candidate is still wrong, so the search has something to climb.
 Two tasks, each from a deliberately naive seed. Held-out test accuracy, n=89,
 split so no situation appears in more than one split.
 
-| | naive seed | **evolved** | hand-written | random clauses |
+| alert triage | naive seed | **evolved** | hand-written | random clauses |
 | --- | ---: | ---: | ---: | ---: |
-| alert triage | 68.5% | **87.6%** | 97.8% | 81.1% |
-| robot arm | 52.8% | **78.7%** | 79.8% | 82.2% |
+| test accuracy | 68.5% | **87.6%** | 97.8% | 81.1% |
 
-All four columns come from one paired evaluation pass (`runs/*.compare.json`),
-where every arm answered the same instances. Numbers in the individual run files
-differ by a point or so: Jev is sampled, so a separate pass is a separate
-measurement, and mixing the two sources would compare arms that never sat the
-same exam.
+All four columns come from one paired evaluation pass
+(`runs/triage.compare.json`), where every arm answered the same instances.
+Numbers in the individual run file differ by a point or so: Jev is sampled, so a
+separate pass is a separate measurement, and mixing the two sources would
+compare arms that never sat the same exam.
 
 On triage it evolved this, from an option description that had said only
 "automatically apply the runbook remediation":
@@ -71,10 +70,13 @@ Those are the real labelling rules, recovered from failure statistics alone.
 
 **Read the caveats.** A search-free control — attach two *random* sound clauses
 per option — is the arm to beat, and it is genuinely competitive. On triage the
-search wins (better on 8 of 10 seeds, worse on none, sign test p=0.008). On the
-robot it does not (2 of 10, p=0.18). A careful human still beats it on triage by
-10 points. See [`docs/findings.md`](docs/findings.md) and the
-[pre-registration](docs/preregistration.md), written before the confirmatory run.
+search wins: better on 8 of 10 seeds, worse on none, sign test p=0.008. On a
+second task, since removed from this repo, it did **not** (2 of 10 seeds,
+p=0.18), and a noise-floor control showed most of that task's arms were
+indistinguishable from each other anyway. A careful human still beats the
+optimiser on triage by 10 points. See [`docs/findings.md`](docs/findings.md) and
+the [pre-registration](docs/preregistration.md), written before the confirmatory
+run.
 
 ## Defining a task
 
@@ -128,9 +130,8 @@ jevopt/        the tool — no simulator, no domain
   proposer.py    the mutation operator
   adapter.py     GEPA adapter, margin scoring
   optimize.py baselines.py compare.py report.py ask.py cli.py
-  tasks/         robot.py, triage.py
-jevbot/        optional robot demo — pip install -e ".[robot]"
-tests/         105 tests, no network
+  tasks/         triage.py — the worked example
+tests/         87 tests, no network
 runs/          recorded experiment artifacts
 ```
 
@@ -144,8 +145,7 @@ runs/          recorded experiment artifacts
 - At equal strength the shortlist tie-breaks alphabetically, which favours
   `Never ...` over the equivalent `Only ...`. Harmless but it makes evolved
   prompts read more negatively than they need to.
-- Recorded results in `runs/` were produced by the code as committed; re-running
-  `jevbot.harvest` would regenerate the robot states and invalidate them.
+- Recorded results in `runs/` were produced by the code as committed.
 
 ## Development
 

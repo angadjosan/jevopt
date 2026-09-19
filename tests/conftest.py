@@ -3,9 +3,9 @@
 Almost every property under test is a property of *any* Task, so most tests run
 against a hand-sized synthetic task whose labels are three one-line rules -- it
 is exhaustively checkable and its expected counts can be written down. The real
-robot and triage tasks are then sampled, to catch anything that only shows up in
-real text and real label distributions. Both are session-scoped: building them
-is cheap but not free, and nothing here mutates a Task.
+triage task is then sampled, to catch anything that only shows up in real text
+and a real label distribution. Both are session-scoped: building them is cheap
+but not free, and nothing here mutates a Task.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import pytest
 from jevopt.conditions import derive
 from jevopt.evidence import Evidence
 from jevopt.task import Task
-from jevopt.tasks import robot, triage
+from jevopt.tasks import triage
 
 COLORS = ("red", "blue")
 SIZES = ("small", "large")
@@ -85,20 +85,15 @@ def synthetic_evidence(synthetic_task: Task) -> Evidence:
 
 
 @pytest.fixture(scope="session")
-def robot_task() -> Task:
-    return robot.build()
-
-
-@pytest.fixture(scope="session")
 def triage_task() -> Task:
     return triage.build()
 
 
-@pytest.fixture(scope="session", params=["robot", "triage"])
+@pytest.fixture(scope="session", params=["triage"])
 def real_task(request) -> Task:
     return request.getfixturevalue(f"{request.param}_task")
 
 
-@pytest.fixture(scope="session", params=["synthetic", "robot", "triage"])
+@pytest.fixture(scope="session", params=["synthetic", "triage"])
 def any_task(request) -> Task:
     return request.getfixturevalue(f"{request.param}_task")

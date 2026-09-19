@@ -6,7 +6,7 @@ GEPA engine; only the mutation operator is replaced. Nothing here knows what the
 decision is about: the task is named on the command line, imported, and asked
 for its options, instances and conditions.
 
-    python3 -m jevopt.optimize --task jevopt.tasks.robot --budget 1500
+    python3 -m jevopt.optimize --task jevopt.tasks.triage --budget 1500
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ def measure(adapter: JevAdapter, candidate: dict, instances: list) -> dict:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--task", default="jevopt.tasks.robot",
+    parser.add_argument("--task", default="jevopt.tasks.triage",
                         help="dotted path to a module exposing build() -> Task")
     parser.add_argument("--budget", type=int, default=1500,
                         help="max metric calls (Jev evaluations)")

@@ -1,8 +1,13 @@
 # Findings
 
-Two tasks, each optimised from a deliberately naive seed. Held-out test set,
+Alert triage, optimised from a deliberately naive seed. Held-out test set,
 n=89, split by situation so nothing in test appears in train. Protocol fixed in
 advance: [`preregistration.md`](preregistration.md).
+
+A second task was measured alongside it and has since been removed from this
+repo. Its results are kept below where they qualify a claim, because dropping
+them would leave only the flattering half of the evidence; they are no longer
+reproducible from this tree, and git history has the code.
 
 ## Headline
 
@@ -28,12 +33,12 @@ that is unambiguous.
 
 - **Triage: the search wins.** Better on 8 of 10 seeds, worse on none, ties on 2.
   Sign test **p = 0.008**.
-- **Robot: it does not.** Better on 2 of 10, worse on 7. **p = 0.18.** Random is
-  nominally ahead.
+- **On the removed second task it did not.** Better on 2 of 10, worse on 7.
+  **p = 0.18**, random nominally ahead.
 
 So attaching two *random* sound clauses per option is competitive with the whole
-Pareto search, and on one of the two tasks it is not beaten. The evidence gate
-and the clause grammar are doing much of the work.
+Pareto search, and on one of the two tasks tried it was not beaten. The evidence
+gate and the clause grammar are doing much of the work.
 
 ## What the noise floor exposed
 
@@ -111,12 +116,10 @@ hard to beat.
 ## Reproducing
 
 ```sh
-jevopt optimize  --task jevopt.tasks.triage --budget 6000
-jevopt baselines --task jevopt.tasks.triage --k 2 --random-seeds 10
-jevopt compare   --task jevopt.tasks.triage --candidate gepa=runs/triage.results.json \
-                 --greedy 2 --random-seeds 10
-jevopt report    --task jevopt.tasks.triage "triage=runs/triage.results.json" \
-                 --compare "triage=runs/triage.compare.json"
+jevopt optimize  --budget 6000
+jevopt baselines --k 2 --random-seeds 10
+jevopt compare   --candidate gepa=runs/triage.results.json --greedy 2 --random-seeds 10
+jevopt report    "triage=runs/triage.results.json" --compare "triage=runs/triage.compare.json"
 ```
 
 Recorded artifacts are in [`../runs/`](../runs), including per-instance

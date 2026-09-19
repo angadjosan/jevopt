@@ -75,15 +75,14 @@ def test_seed_text_contains_no_clauses(any_task):
         assert base == seed.rstrip(), f"{name}: base lost text -> {base!r}"
 
 
-def test_multi_sentence_seeds_stay_whole(synthetic_task, robot_task):
+def test_multi_sentence_seeds_stay_whole(synthetic_task):
     """`split_clauses` cuts on ". ", so a two-sentence seed is the case that can
     break: both sentences belong to the base, neither is a clause."""
-    for task, seed in ((synthetic_task, synthetic_task.options["beta"]),
-                       (robot_task, robot_task.options["open_gripper"])):
-        assert seed.count(". ") == 1, seed          # the fixture must stay two-sentence
-        base, found = grammar.split_clauses(seed, task)
-        assert found == []
-        assert base == seed
+    seed = synthetic_task.options["beta"]
+    assert seed.count(". ") == 1, seed              # the fixture must stay two-sentence
+    base, found = grammar.split_clauses(seed, synthetic_task)
+    assert found == []
+    assert base == seed
 
 
 def test_reference_text_contains_no_clauses(real_task):

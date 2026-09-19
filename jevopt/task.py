@@ -1,6 +1,6 @@
 """What the optimiser needs to know about a decision, and nothing more.
 
-The method is not about robots. It evolves the option descriptions of any Jev
+It evolves the option descriptions of any Jev
 `choice` question, given labelled states. A Task is the whole interface: the
 options to choose between, the states, which options are acceptable in each,
 and the vocabulary of conditions the grammar may talk about.

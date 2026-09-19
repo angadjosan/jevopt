@@ -11,9 +11,6 @@ requires-python = ">=3.10"
 dependencies = ["gepa"]
 
 [project.optional-dependencies]
-# The PyBullet robot demo in jevbot/ is not part of the tool; it is installable
-# alongside it for anyone who wants to regenerate the robot states.
-robot = ["pybullet", "numpy", "pillow"]
 dev = ["pytest", "ruff"]
 
 [project.scripts]
@@ -21,9 +18,6 @@ jevopt = "jevopt.cli:main"
 
 [tool.setuptools]
 packages = ["jevopt", "jevopt.tasks"]
-
-[tool.setuptools.package-data]
-jevopt = ["data/*.json"]
 
 [tool.ruff]
 line-length = 90

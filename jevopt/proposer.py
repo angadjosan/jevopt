@@ -80,7 +80,7 @@ def _digest(task: Task, records: list[dict], option: str, partner: str,
             text: str) -> dict:
     """The failure evidence, as the state of the repair question.
 
-    The robot original hand-picked the state fields worth showing. Nothing
+    An earlier version hand-picked the state fields worth showing. Nothing
     generic can know which those are, so the whole state goes in -- it is the
     same shape Jev already reads when answering the task itself.
     """
