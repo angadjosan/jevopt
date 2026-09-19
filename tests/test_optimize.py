@@ -266,6 +266,21 @@ def test_existing_output_is_not_overwritten_without_force(healthy, outputs):
     assert calls == []                               # refused before spending
 
 
+def test_an_output_directory_that_does_not_exist_is_refused_up_front(healthy,
+                                                                     tmp_path):
+    """The other half of the same preflight: a path that cannot be written is
+    caught before the spend, not as a traceback out of open() after it."""
+    nowhere = tmp_path / "no" / "such" / "dir"
+    outputs = nowhere / "prompt.txt", nowhere / "results.json"
+
+    with stub_jev(always_first) as calls, pytest.raises(SystemExit) as exit_info:
+        optimize.main(argv(healthy, outputs))
+
+    assert exit_info.value.code != 0
+    assert "do not exist" in str(exit_info.value.code)
+    assert calls == []
+
+
 def test_force_overwrites_existing_output(healthy, outputs):
     out, results = outputs
     out.write_text("PREVIOUS PROMPT")
@@ -357,16 +372,24 @@ def test_the_reported_call_total_is_the_number_of_calls_made(finished_run):
     assert f"Jev calls: {total} total" in finished_run.console.out
 
 
-def test_a_full_triage_run_reconciles_its_call_total(outputs, capsys):
-    """The one test on the real task: six hundred-odd calls, all of them stubbed."""
+def test_a_full_triage_run_counts_its_proposer_calls_too(outputs, capsys):
+    """The one test on the real task, and the only run here big enough for the
+    search to ask Jev for a repair. Those calls went through client.ask rather
+    than the adapter and so reached no counter at all: that is how the console
+    said 88 Jev calls for a run whose JSON recorded 619."""
     out, results = outputs
     with stub_jev(always_first) as calls:
-        optimize.main(["--task", "jevopt.tasks.triage", "--budget", "6", "--quiet",
+        optimize.main(["--task", "jevopt.tasks.triage", "--budget", "150",
+                       "--minibatch", "5", "--quiet",
                        "--out", str(out), "--results", str(results)])
 
     written = json.loads(results.read_text())
+    breakdown = written["jev_calls_breakdown"]
     assert written["task"] == "triage"
-    assert len(calls) > 500                      # a real run, not a toy one
-    assert written["jev_calls"] == len(calls)
     assert "reference" in written["report"]      # triage carries a human arm
+    assert len(calls) > 500                      # a real run, not a toy one
+    assert breakdown["proposer_repair_calls"] > 0
+    assert (breakdown["search_evaluations"] + breakdown["proposer_repair_calls"]
+            + breakdown["measurement_evaluations"]) == len(calls)
+    assert written["jev_calls"] == len(calls)
     assert f"Jev calls: {len(calls)} total" in capsys.readouterr().out

@@ -147,6 +147,11 @@ def main(argv: list[str] | None = None) -> None:
             for split in ("val", "test")
         }
 
+    # Refuse BEFORE the table, not after it. A reader going top-down would
+    # otherwise meet a full page of 0.0% / -1.000 rows -- the exact confident
+    # fake result this check exists to suppress -- and only then the refusal.
+    check_failures(adapter, "these baselines")
+
     # n is printed beside the accuracies: a few points between arms on this many
     # instances is not a difference, and the reader should not have to go looking.
     print(f"{'arm':14s} {'n val':>6s} {'val acc':>8s} {'n test':>7s} "
@@ -159,7 +164,6 @@ def main(argv: list[str] | None = None) -> None:
 
     print(f"\nJev calls: {meter.calls} total, all of them evaluations "
           f"({adapter.calls} measured); ${adapter.spend:.4f} spent.")
-    check_failures(adapter, "these baselines")
 
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     with open(out, "w") as fh:
