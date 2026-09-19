@@ -15,7 +15,7 @@ untested before: without this, any test of them costs money and needs a key.
 from __future__ import annotations
 
 import contextlib
-from typing import Callable
+from collections.abc import Callable
 
 from jevopt import client
 
