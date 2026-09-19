@@ -22,9 +22,9 @@ import pytest
 
 from jevopt import report
 
-RUNS = Path(__file__).resolve().parent.parent / "runs"
-RESULTS = str(RUNS / "triage.results.json")
-COMPARE = str(RUNS / "triage.compare.json")
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+RESULTS = str(FIXTURES / "triage.results.json")
+COMPARE = str(FIXTURES / "triage.compare.json")
 TRIAGE = "jevopt.tasks.triage"
 
 
@@ -69,7 +69,7 @@ def test_a_module_without_build_is_named_as_such():
 def test_the_committed_run_renders_the_clauses_the_search_added(capsys):
     """The regression that matters: this section used to come out empty.
 
-    These are the actual sentences in runs/triage.results.json -- if the task
+    These are the actual sentences in the recorded run -- if the task
     and the results ever stop lining up, the section silently empties again and
     only real clause text catches it.
     """

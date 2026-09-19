@@ -13,8 +13,8 @@ pip install -e .
 export OPENROUTER=sk-or-...
 
 jevopt optimize --task jevopt.tasks.triage     # evolve the option descriptions
-jevopt compare  --task jevopt.tasks.triage --candidate gepa=runs/triage.results.json
-jevopt report   --task jevopt.tasks.triage "run=runs/triage.results.json"
+jevopt compare  --task jevopt.tasks.triage --candidate gepa=out/triage.results.json
+jevopt report   --task jevopt.tasks.triage "run=out/triage.results.json"
 jevopt ask "Payouts have failed for 3 days" --noul 'urgent: Is this urgent?'
 ```
 
@@ -53,8 +53,8 @@ split so no situation appears in more than one split.
 | --- | ---: | ---: | ---: | ---: |
 | test accuracy | 68.5% | **87.6%** | 97.8% | 81.1% |
 
-All four columns come from one paired evaluation pass
-(`runs/triage.compare.json`), where every arm answered the same instances.
+All four columns come from one paired evaluation pass, where every arm answered
+the same instances.
 Numbers in the individual run file differ by a point or so: Jev is sampled, so a
 separate pass is a separate measurement, and mixing the two sources would
 compare arms that never sat the same exam.
@@ -130,7 +130,6 @@ jevopt/        the tool — no simulator, no domain
   optimize.py baselines.py compare.py report.py ask.py cli.py
   tasks/         triage.py — the worked example
 tests/         87 tests, no network
-runs/          recorded experiment artifacts
 ```
 
 ## Known characteristics
@@ -143,7 +142,6 @@ runs/          recorded experiment artifacts
 - At equal strength the shortlist tie-breaks alphabetically, which favours
   `Never ...` over the equivalent `Only ...`. Harmless but it makes evolved
   prompts read more negatively than they need to.
-- Recorded results in `runs/` were produced by the code as committed.
 
 ## Development
 

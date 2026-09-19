@@ -2,8 +2,9 @@
 
 Alert triage, optimised from a deliberately naive seed. Held-out test set of 89
 instances, split by situation so nothing in test appears in train. Every figure
-comes from one paired pass (`runs/triage.compare.json`) in which all sixteen
-arms answered the same instances.
+comes from one paired pass in which all sixteen arms answered the same
+instances. The raw artifacts are not kept in the repo; the figures below are
+what they recorded.
 
 ## Headline
 
@@ -14,8 +15,8 @@ arms answered the same instances.
 The evolved prompt beats its naive seed by 19 points (0 vs 17 discordant
 instances, p < 0.0001). That is the one result here that is unambiguous.
 
-The per-run file `runs/triage.results.json` reports the same arms up to about a
-point (seed 67.4% there, 68.5% here) because Jev is sampled and each pass is its
+The per-run file reported the same arms up to about a point (seed 67.4% there,
+68.5% here) because Jev is sampled and each pass is its
 own measurement. Quoting across the two would compare arms that never sat the
 same exam — the reporter renders them as separate sections for that reason.
 
@@ -106,12 +107,12 @@ hard to beat.
 ```sh
 jevopt optimize  --task jevopt.tasks.triage --budget 6000
 jevopt baselines --task jevopt.tasks.triage --k 2 --random-seeds 10
-jevopt compare   --task jevopt.tasks.triage --candidate gepa=runs/triage.results.json \
+jevopt compare   --task jevopt.tasks.triage --candidate gepa=out/triage.results.json \
                  --greedy 2 --random-seeds 10
-jevopt report    --task jevopt.tasks.triage "triage=runs/triage.results.json" \
-                 --compare "triage=runs/triage.compare.json"
+jevopt report    --task jevopt.tasks.triage "triage=out/triage.results.json" \
+                 --compare "triage=out/triage.compare.json"
 ```
 
-Recorded artifacts are in [`../runs/`](../runs), including per-instance
-correctness vectors so the comparisons can be re-analysed without spending
-anything.
+The recorded artifacts are no longer kept in the repo, so these figures cannot
+be recomputed from it -- rerun the commands above to regenerate them. A copy of
+the run the report tests pin lives in `tests/fixtures/`.
