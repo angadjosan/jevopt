@@ -20,7 +20,8 @@ def snapshot(world: ArmWorld, step: int, last: tuple) -> dict:
     return state, rgb
 
 
-def episode(apple_xy, max_steps=45, model=None, frame_dir=None, quiet=False) -> dict:
+def episode(apple_xy, max_steps=45, model=None, frame_dir=None, quiet=False,
+            questions=None) -> dict:
     world = ArmWorld(apple_xy=apple_xy)
     frames, log = [], []
     last = (None, None)
@@ -30,7 +31,8 @@ def episode(apple_xy, max_steps=45, model=None, frame_dir=None, quiet=False) -> 
     for step in range(max_steps):
         state, rgb = snapshot(world, step, last)
         frames.append(rgb)
-        choice = decide(state, model=model) if model else decide(state)
+        choice = decide(state, model=model or None, questions=questions) if model \
+            else decide(state, questions=questions)
         spend += choice["usage"].get("cost", 0.0) or 0.0
         action = choice["action"]
 

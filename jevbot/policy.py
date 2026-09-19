@@ -54,9 +54,9 @@ QUESTIONS = {
 }
 
 
-def decide(state: dict, model: str = client.MODEL) -> dict:
+def decide(state: dict, model: str = client.MODEL, questions: dict | None = None) -> dict:
     """One Jev call -> the chosen action plus the two side judgements."""
-    body = client.ask(state, QUESTIONS, model=model)
+    body = client.ask(state, questions or QUESTIONS, model=model)
     answers = body["answers"]
     action = answers["action"]
     return {
