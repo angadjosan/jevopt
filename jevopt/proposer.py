@@ -35,7 +35,11 @@ def _confusion(records: list[dict], option: str) -> dict[str, float]:
             for winner in record["should_have_been"]:
                 mass[winner] += record["p_this_option"]
         elif record["role"] == "missed":
-            mass[record["model_chose"]] += record["p_model_chose"]
+            # The adapter only files a trace as "missed" when the winner was not
+            # itself acceptable; guarded here too so confusion mass can never be
+            # charged to an option that was also a right answer.
+            if record["model_chose"] not in record["should_have_been"]:
+                mass[record["model_chose"]] += record["p_model_chose"]
     mass.pop(option, None)
     return dict(mass)
 
@@ -68,8 +72,11 @@ def _candidate_clauses(task: Task, evidence: Evidence, option: str, partner: str
         if len(out) >= SHORTLIST - 1:
             break
 
-    if attached:
-        worst = min(attached, key=lambda c: evidence.clause_value(option, c))
+    # Only clauses the search itself attached may be retracted -- a seed
+    # sentence shaped like a clause is the user's prose, not a mutation.
+    removable = grammar.removable_clauses(text, task, option)
+    if removable:
+        worst = min(removable, key=lambda c: evidence.clause_value(option, c))
         if evidence.clause_value(option, worst) < MIN_STRENGTH:
             out.append({"clause": f"Remove this rule: {worst}", "strength": 0.0,
                         "template": "remove", "condition": worst, "op": "remove"})
@@ -129,7 +136,7 @@ class JevProposer:
             option = component[len(grammar.PREFIX):]
             records = list(reflective_dataset.get(component, []))
             text = candidate.get(component, self.task.options.get(option, ""))
-            base, attached = grammar.split_clauses(text, self.task)
+            _base, attached = grammar.split_clauses(text, self.task)
             if len(attached) > MAX_CLAUSES:
                 continue
 
@@ -151,8 +158,10 @@ class JevProposer:
             if pick is None:
                 continue
             if pick["op"] == "remove":
-                new_text = grammar.compose(
-                    base, [c for c in attached if c != pick["condition"]])
+                # Delete that one sentence in place: recomposing base + clauses
+                # would shuffle any seed sentence the grammar recognises to the
+                # end of the description.
+                new_text = grammar.remove_clause(text, pick["condition"])
             else:
                 new_text = grammar.apply_clause(text, pick["clause"])
             if new_text == text:

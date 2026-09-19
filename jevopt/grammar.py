@@ -69,14 +69,41 @@ def all_clauses(task: Task) -> set[str]:
     return entry["clauses"]
 
 
+def sentences(text: str) -> list[str]:
+    """The text as the sentences the search manipulates, one clause each."""
+    out = []
+    for part in text.split(". "):
+        part = part.strip()
+        out.append(part if part.endswith(".") else part + ".")
+    return out
+
+
 def split_clauses(text: str, task: Task) -> tuple[str, list[str]]:
     """Separate the seed description from clauses the search has appended."""
     known = all_clauses(task)
-    parts, base, clauses = [p.strip() for p in text.split(". ")], [], []
-    for part in parts:
-        sentence = part if part.endswith(".") else part + "."
+    base, clauses = [], []
+    for sentence in sentences(text):
         (clauses if sentence in known else base).append(sentence)
     return " ".join(base), clauses
+
+
+def removable_clauses(text: str, task: Task, option: str) -> list[str]:
+    """The attached clauses the search is allowed to retract.
+
+    split_clauses recognises a clause by its shape, so a seed sentence a human
+    wrote that happens to be phrased like one ("Never choose this when severity
+    is \"sev3\".") comes back as an attached clause. Offering that for removal
+    would let the search delete the user's own prose and log it as an ordinary
+    mutation, so anything already in the option's seed text is off limits --
+    the search may only take back what the search put there.
+    """
+    seed = set(sentences(task.options.get(option, "")))
+    return [c for c in split_clauses(text, task)[1] if c not in seed]
+
+
+def remove_clause(text: str, clause: str) -> str:
+    """Drop one clause, leaving every other sentence where it was."""
+    return " ".join(s for s in sentences(text) if s != clause).strip()
 
 
 def compose(base: str, clauses: list[str]) -> str:

@@ -59,6 +59,12 @@ class JevAdapter:
         self.options = list(task.options)
         self.calls = 0
         self.spend = 0.0
+        # A failed call still scores -1.0, which is indistinguishable from a
+        # confidently wrong answer. Without these two a run with a bad API key
+        # reports a full table of 0% and exits 0, so the caller cannot tell a
+        # terrible prompt from no answer at all.
+        self.failures = 0
+        self.first_error: str | None = None
 
     def evaluate(self, batch, candidate, capture_traces: bool = False):
         questions = grammar.questions(self.task, candidate)
@@ -66,6 +72,12 @@ class JevAdapter:
             traces = list(pool.map(
                 lambda i: _score_one(i, questions, self.options), batch))
 
+        # Counted here rather than in _score_one: the workers run concurrently,
+        # the aggregation does not.
+        errors = [t["error"] for t in traces if t.get("error")]
+        self.failures += len(errors)
+        if self.first_error is None and errors:
+            self.first_error = errors[0]
         self.calls += len(batch)
         self.spend += sum(t.get("cost", 0.0) for t in traces)
         # Map margin in [-1, 1] onto [0, 1]; > 0.5 exactly when the pick is right.
@@ -90,9 +102,17 @@ class JevAdapter:
                 probs = trace["probabilities"]
                 if chosen == option and option not in good:
                     role = "chosen_wrongly"
-                elif option in good and chosen != option:
+                elif option in good and chosen not in good:
                     role = "missed"
-                elif option in good and chosen == option:
+                elif option in good:
+                    # Either this option won, or a co-acceptable one did. With
+                    # multi-label `acceptable` sets both are correct decisions:
+                    # calling the second case "missed" would ask the proposer to
+                    # repair a case it got right and feed the sibling's
+                    # probability into _confusion, so the search spends its
+                    # budget driving apart two defensible answers. Kept as
+                    # "correct" rather than dropped so the evidence that the
+                    # description misled nobody stays visible in the dataset.
                     role = "correct"
                 else:
                     continue
