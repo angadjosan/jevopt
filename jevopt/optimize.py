@@ -92,6 +92,17 @@ def check_writable(paths, force: bool) -> None:
     published evidence lives, so the quickstart as written destroys the
     artifacts docs/findings.md cites.
     """
+    # An unwritable directory is the same class of mistake as an overwrite --
+    # caught here, it is one line like every other error in the tool; caught at
+    # open() it is a traceback.
+    wanted = {os.path.dirname(p) for p in paths if p and os.path.dirname(p)}
+    missing = sorted(d for d in wanted if not os.path.isdir(d))
+    if missing:
+        listing = "\n".join(f"    {d}" for d in missing)
+        raise SystemExit(
+            f"cannot write there -- {len(missing)} directory(ies) do not exist:\n"
+            f"{listing}\n  Create them, or choose an existing directory.")
+
     existing = sorted({p for p in paths if p and os.path.exists(p)})
     if existing and not force:
         listing = "\n".join(f"    {p}" for p in existing)
