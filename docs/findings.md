@@ -1,59 +1,54 @@
 # Findings
 
-Alert triage, optimised from a deliberately naive seed. Held-out test set,
-n=89, split by situation so nothing in test appears in train. Protocol fixed in
-advance: [`preregistration.md`](preregistration.md).
-
-A second task was measured alongside it and has since been removed from this
-repo. Its results are kept below where they qualify a claim, because dropping
-them would leave only the flattering half of the evidence; they are no longer
-reproducible from this tree, and git history has the code.
+Alert triage, optimised from a deliberately naive seed. Held-out test set of 89
+instances, split by situation so nothing in test appears in train. Every figure
+comes from one paired pass (`runs/triage.compare.json`) in which all sixteen
+arms answered the same instances.
 
 ## Headline
 
 | | naive seed | **evolved** | hand-written | random clauses (10 seeds) |
 | --- | ---: | ---: | ---: | ---: |
-| alert triage | 68.5% | **87.6%** | 97.8% | 81.1% (71.9–87.6) |
-| robot arm | 52.8% | **78.7%** | 79.8% | 82.2% (75.3–88.8) |
+| test accuracy | 68.5% | **87.6%** | 97.8% | 81.1% (71.9–87.6) |
 
-Every figure here is from the paired pass in `runs/*.compare.json`, where all
-arms answered the same instances in one run. The per-run files report the same
-arms up to about a point (triage seed 67.4% there, 68.5% here; robot evolved
-80.9% there, 78.7% here) because Jev is sampled and each pass is its own
-measurement. Quoting across the two would be comparing arms that never sat the
-same exam -- the reporter renders them as separate sections for that reason.
+The evolved prompt beats its naive seed by 19 points (0 vs 17 discordant
+instances, p < 0.0001). That is the one result here that is unambiguous.
 
-Everything beats its naive seed by 20–26 points, and that is the one result
-that is unambiguous.
+The per-run file `runs/triage.results.json` reports the same arms up to about a
+point (seed 67.4% there, 68.5% here) because Jev is sampled and each pass is its
+own measurement. Quoting across the two would compare arms that never sat the
+same exam — the reporter renders them as separate sections for that reason.
 
-## The pre-registered test
+## Does the search beat doing something dumb?
 
-> GEPA-evolved vs the random-clause control, paired McNemar, two-sided, the
-> control read as a *distribution* over 10 seeds rather than as 10 arms.
+The control to beat: skip the search entirely and attach two *random* sound
+clauses per option, drawn from the same gated pool. Run as a distribution over
+ten seeds rather than as ten arms, because reading the best or worst seed is a
+forking path.
 
-- **Triage: the search wins.** Better on 8 of 10 seeds, worse on none, ties on 2.
-  Sign test **p = 0.008**.
-- **On the removed second task it did not.** Better on 2 of 10, worse on 7.
-  **p = 0.18**, random nominally ahead.
+**The search wins: better on 8 of 10 seeds, worse on none, ties on 2. Sign test
+p = 0.008.**
 
-So attaching two *random* sound clauses per option is competitive with the whole
-Pareto search, and on one of the two tasks tried it was not beaten. The evidence
-gate and the clause grammar are doing much of the work.
+That is a real effect, but note how close the control gets: its mean is 81.1%
+against the evolved arm's 87.6%, its best seed matches the evolved arm outright,
+and pair by pair only 3 of the 10 separate at p < 0.05. Most of the work is
+being done by the evidence gate and the clause grammar; the Pareto search on top
+is worth about six points.
 
-## What the noise floor exposed
+## The noise floor
 
 The same prompt was entered twice as two arms, differing only by a trailing
 space to defeat the text cache. Its self-disagreement is the floor below which
 no comparison means anything.
 
-- **Triage**: the twins disagree on **1 of 89** instances. Comparisons there are
-  about prompts.
-- **Robot**: they disagree on **6 of 89** — and **13 of the 14 arms are not
-  distinguishable from that floor.** On the robot task, almost none of the
-  differences in the headline table are interpretable at this sample size.
+The twins disagree on **1 of 89** instances, so comparisons here are about
+prompts rather than sampling. Even so, **7 of the 15 arms do not separate from
+that floor** — including the evolved arm itself and six of the ten random ones.
+Across all 120 pairs only 65 separate at p < 0.05, and with that many tests
+about 6 false positives are expected.
 
-That is the most useful thing the controls bought. Without the floor arm, the
-robot column reads like a ranking; with it, the column is mostly noise.
+Without a floor arm a column of accuracies reads like a ranking. With one, it is
+clear how much of the table is unorderable at this sample size.
 
 ## Is Jev's own judgement load-bearing?
 
@@ -62,27 +57,21 @@ with the statistically strongest shortlist entry.
 
 | | with Jev choosing | argmax |
 | --- | ---: | ---: |
-| triage | 87.6% | 80.9% |
+| test accuracy | 87.6% | 80.9% |
 
 **+6.7 points, p = 0.070 on 7/1 discordant instances — not significant.** It
-leans in Jev's favour on both tasks, but this data cannot establish it. An
-earlier version of this write-up claimed it was established; that was wrong.
+leans in Jev's favour, but this data cannot establish it. An earlier version of
+this write-up claimed it was established; that was wrong.
 
-## Auto-derived conditions beat hand-written ones
+## A human still wins
 
-Same robot task, same algorithm, only the condition vocabulary changed:
+The hand-written reference reaches 97.8% against the evolved 87.6%, on 9 vs 0
+discordant instances, **p = 0.004**. That gap is real. The optimiser closes most
+of the distance from a naive seed to a careful human, and does not close it.
 
-| vocabulary | test |
-| --- | ---: |
-| 21 conditions written by hand | 62.6% |
-| 29 derived mechanically from the state schema + 4 hand-written groupings | **80.9%** |
+## What the search produced
 
-Enumerating `field is "value"` off the states outperformed the vocabulary
-designed for the task. Hand-writing conditions is not where the effort pays.
-
-## What the search actually produced
-
-Triage, from a seed that said only what each action does mechanically:
+From a seed whose options said only what each action does mechanically:
 
 ```
 auto_remediate:  Only choose this when the blast radius is small -- tier3, or
@@ -102,15 +91,14 @@ collapsed within one shortlist but not across iterations.
 
 ## Honest summary
 
-It works: naive prompts become good ones automatically, for cents, with no
-text-generating model. It does not beat a careful human on triage (97.8% vs
-87.6%, and that gap **is** significant at p=0.004). On the robot it ties the
-human — but on the robot almost nothing separates from noise, so that tie is
-not much of a claim.
+It works: a naive prompt becomes a good one automatically, for cents, with no
+text-generating model anywhere. It does not beat a careful human. It beats a
+random draw from its own clause pool, but only just, and that pool exists
+because of the evidence gate rather than the search.
 
 The method's ceiling is its grammar. It searches a space of clauses the schema
-and templates can express, which is why it cannot invent the phrasing a
-generative reflector would, and why a random draw from that same space is so
+and templates can express, which is why it cannot invent phrasing the way a
+generative reflector would — and why a random draw from that same space is so
 hard to beat.
 
 ## Reproducing

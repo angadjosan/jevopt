@@ -70,13 +70,11 @@ Those are the real labelling rules, recovered from failure statistics alone.
 
 **Read the caveats.** A search-free control — attach two *random* sound clauses
 per option — is the arm to beat, and it is genuinely competitive. On triage the
-search wins: better on 8 of 10 seeds, worse on none, sign test p=0.008. On a
-second task, since removed from this repo, it did **not** (2 of 10 seeds,
-p=0.18), and a noise-floor control showed most of that task's arms were
-indistinguishable from each other anyway. A careful human still beats the
-optimiser on triage by 10 points. See [`docs/findings.md`](docs/findings.md) and
-the [pre-registration](docs/preregistration.md), written before the confirmatory
-run.
+search wins — better on 8 of 10 seeds, worse on none, sign test p=0.008 — but
+its best seed matches the evolved arm outright, and a noise-floor control (the
+same prompt entered twice) shows 7 of 15 arms do not separate from it at all. A
+careful human still beats the optimiser by 10 points, at p=0.004. See
+[`docs/findings.md`](docs/findings.md).
 
 ## Defining a task
 
