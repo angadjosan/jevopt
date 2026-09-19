@@ -21,11 +21,13 @@ import sys
 from collections import Counter
 
 from . import grammar
-from .optimize import load_task
+from .optimize import add_task_argument, check_writable, load_task
 from .task import Task
 
 TOP_PAIRS = 8
 TOP_WRONG = 3
+SEED_ARM = "seed"            # the arm optimize.py scores twice
+REPEAT_ARM = "seed (repeat)"  # ... and the second score: the measured noise floor
 ALPHA = 0.05          # the threshold compare.py wrote its "significant" flag with
 NOISE_HINT = "noise"  # substring marking a noise-floor arm, e.g. "noise_twin"
 
@@ -88,10 +90,35 @@ def mismatch(name: str, data: dict, task: Task) -> str | None:
     return None
 
 
+def _floor_note(name: str, report: dict) -> list[str]:
+    """What the same prompt, scored twice, moved by -- in the table, not a footnote.
+
+    Jev samples, so a run has reported a 4.8-point "regression" between a prompt
+    and itself. Any gap in the rows above smaller than this one is noise.
+    """
+    seed, repeat = _side(report, SEED_ARM, "test"), _side(report, REPEAT_ARM, "test")
+    first, second = _num(seed.get("accuracy")), _num(repeat.get("accuracy"))
+    if first is None or second is None:
+        return [f"> **{name}: no noise floor measured** — this run did not score "
+                f"the seed twice, so no gap in it can be called a difference.", ""]
+    floor = abs(first - second)
+    inside = sorted(arm for arm, row in report.items()
+                    if arm not in (SEED_ARM, REPEAT_ARM)
+                    and _num(_dict(_dict(row).get("test")).get("accuracy")) is not None
+                    and abs(_num(_dict(row)["test"]["accuracy"]) - first) <= floor)
+    note = (f"> **{name}: noise floor {_fmt(floor, 'pt')} on test** — `{SEED_ARM}` "
+            f"and `{REPEAT_ARM}` are the same prompt scored twice.")
+    if inside:
+        note += (" Not shown to differ from the seed: "
+                 + ", ".join(f"`{a}`" for a in inside) + ".")
+    return [note, ""]
+
+
 def table(runs, arms) -> list[str]:
     out = ["## Results", "",
-           "| run | arm | val acc | test acc | test margin | val - test |",
-           "| --- | --- | ---: | ---: | ---: | ---: |"]
+           "| run | arm | n val | val acc | n test | test acc | test margin "
+           "| val - test |",
+           "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for name, data in runs:
         report = _dict(data.get("report"))
         for arm in (a for a in arms if a in report):
@@ -99,20 +126,40 @@ def table(runs, arms) -> list[str]:
             va, ta = _num(val.get("accuracy")), _num(test.get("accuracy"))
             # Positive = worse on held-out data than on the set GEPA selected on.
             gap = None if va is None or ta is None else va - ta
-            out.append(f"| {name} | {arm} | {_fmt(va)} | {_fmt(ta)} "
+            out.append(f"| {name} | {arm} | {val.get('n', 'n/a')} | {_fmt(va)} "
+                       f"| {test.get('n', 'n/a')} | {_fmt(ta)} "
                        f"| {_fmt(_num(test.get('mean_margin')), 'f3')} "
                        f"| **{_fmt(gap, 'pt')}** |")
-    return out + ["", "_val - test is the overfitting indicator: positive means "
-                      "the arm lost accuracy off the set it was selected on._", ""]
+    out += [""]
+    for name, data in runs:
+        out += _floor_note(name, _dict(data.get("report")))
+        if data.get("evolved_identical_to_seed"):
+            out += [f"> **{name}: the evolved candidate is byte-identical to the "
+                    f"seed prompt.** The search changed nothing that survived "
+                    f"selection; there is no evolved arm to compare.", ""]
+    return out + ["_val - test is the overfitting indicator: positive means "
+                  "the arm lost accuracy off the set it was selected on._", ""]
 
 
 def cost(runs) -> list[str]:
+    """One call figure, the same one the run printed: every Jev call it made.
+
+    Older files carry only the evaluation count, so the breakdown is shown when
+    the run recorded one and left out when it did not, rather than reconstructed.
+    """
     out = ["## Cost", ""]
     for name, data in runs:
         calls, spend = _num(data.get("jev_calls")), _num(data.get("spend_usd"))
+        failures = _num(data.get("jev_call_failures"))
+        parts = _dict(data.get("jev_calls_breakdown"))
+        detail = ", ".join(f"{key.replace('_', ' ')} {value}"
+                           for key, value in parts.items()
+                           if key != "total" and _num(value) is not None)
         out.append(f"- **{name}**: {calls if calls is not None else 'n/a'} Jev "
-                   f"calls, {f'${spend:.5f}' if spend is not None else 'spend n/a'}"
-                   f", {len(_list(data.get('mutations')))} mutations applied")
+                   f"calls{f' ({detail})' if detail else ''}, "
+                   f"{f'${spend:.5f}' if spend is not None else 'spend n/a'}"
+                   f", {len(_list(data.get('mutations')))} mutations applied"
+                   + (f", {failures} failed calls" if failures else ""))
     return out + [""]
 
 
@@ -226,18 +273,15 @@ def main(argv=None) -> None:
     add = parser.add_argument
     add("runs", nargs="*", metavar="NAME=PATH",
         help="results JSON from jevopt.optimize; repeatable")
-    add("--task", default="jevopt.tasks.triage", help="dotted path to a module "
-        "exposing build() -> Task; needed to tell added clauses from the seed text")
+    add_task_argument(parser)
     add("--compare", action="append", default=[], metavar="NAME=PATH",
         help="comparison JSON from jevopt.compare; repeatable")
     add("--out", help="write the markdown here instead of stdout")
+    add("--force", action="store_true", help="overwrite an existing --out file")
     args = parser.parse_args(argv)
 
-    try:
-        task = load_task(args.task)
-    except Exception as exc:              # a bad --task is a typo, not a crash
-        print(f"cannot load task {args.task!r}: {exc}", file=sys.stderr)
-        raise SystemExit(1) from exc
+    task = load_task(args.task)           # a bad --task is a typo, not a traceback
+    check_writable((args.out,), args.force)
 
     runs = [got for got in (load(spec) for spec in args.runs) if got]
     compares = [got for got in (load(spec) for spec in args.compare) if got]

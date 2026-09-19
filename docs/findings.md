@@ -104,10 +104,12 @@ hard to beat.
 ## Reproducing
 
 ```sh
-jevopt optimize  --budget 6000
-jevopt baselines --k 2 --random-seeds 10
-jevopt compare   --candidate gepa=runs/triage.results.json --greedy 2 --random-seeds 10
-jevopt report    "triage=runs/triage.results.json" --compare "triage=runs/triage.compare.json"
+jevopt optimize  --task jevopt.tasks.triage --budget 6000
+jevopt baselines --task jevopt.tasks.triage --k 2 --random-seeds 10
+jevopt compare   --task jevopt.tasks.triage --candidate gepa=runs/triage.results.json \
+                 --greedy 2 --random-seeds 10
+jevopt report    --task jevopt.tasks.triage "triage=runs/triage.results.json" \
+                 --compare "triage=runs/triage.compare.json"
 ```
 
 Recorded artifacts are in [`../runs/`](../runs), including per-instance

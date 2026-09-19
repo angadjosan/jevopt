@@ -31,7 +31,15 @@ from . import grammar
 from .adapter import JevAdapter
 from .baselines import greedy_arm, random_arm
 from .evidence import Evidence
-from .optimize import load_task
+from .optimize import (
+    CallMeter,
+    add_task_argument,
+    check_failures,
+    check_split,
+    check_writable,
+    load_task,
+    warn_conflicts,
+)
 from .task import Task
 
 Z95 = 1.959963984540054
@@ -124,6 +132,18 @@ def build_arms(task: Task, train: list[dict], args) -> list[tuple[str, dict]]:
     return arms
 
 
+def _identical_groups(arms: list[tuple[str, dict]]) -> list[list[str]]:
+    """Arms whose prompt text is the same, grouped.
+
+    Byte-identical arms have been reported as a 4.8-point difference. They are
+    one arm scored twice, which is worth printing -- as the noise floor.
+    """
+    by_text: dict[str, list[str]] = {}
+    for name, candidate in arms:
+        by_text.setdefault(json.dumps(candidate, sort_keys=True), []).append(name)
+    return list(by_text.values())
+
+
 def evaluate(adapter: JevAdapter, candidate: dict, instances: list[dict],
              cache: dict) -> tuple[list[bool], list[float]]:
     """Per-instance correctness and margin, memoised on the candidate text: two
@@ -145,7 +165,7 @@ def pct(x: float) -> str:
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     add = parser.add_argument
-    add("--task", default="jevopt.tasks.triage", help="module exposing build() -> Task")
+    add_task_argument(parser)
     add("--split-seed", type=int, default=0, help="must match the seed the runs used")
     add("--candidate", action="append", default=[], metavar="NAME=PATH",
         help="evolved arm from a results JSON's 'evolved' key; repeatable")
@@ -159,31 +179,48 @@ def main(argv: list[str] | None = None) -> None:
     add("--limit", type=int, default=0,
         help="truncate the test set, for cheap smoke runs")
     add("--out", help="JSON with the raw per-instance vectors, for re-analysis")
+    add("--force", action="store_true", help="overwrite an existing --out file")
     args = parser.parse_args(argv)
 
     task = load_task(args.task)
+    check_writable((args.out,), args.force)
     train, _val, test = task.split(seed=args.split_seed)
+    check_split(task, {"train": train, "test": test})
+    warn_conflicts(task)
     if args.limit > 0:
         test = test[:args.limit]
     arms = build_arms(task, train, args)
     n = len(test)
 
+    # Two arms that are the same prompt share one evaluation pass, so the plan is
+    # an upper bound rather than a promise.
     print(f"task {task.name}: {len(arms)} arms x {n} shared test instances "
-          f"(split seed {args.split_seed}{', TRUNCATED' if args.limit else ''})\n")
+          f"(split seed {args.split_seed}{', TRUNCATED' if args.limit else ''})\n"
+          f"budget plan: at most {len(arms)} x {n} = {len(arms) * n} Jev "
+          f"evaluations; arms with identical prompt text share a pass.\n")
 
     adapter, cache, results = JevAdapter(task), {}, {}
-    for name, candidate in arms:
-        correct, margins = evaluate(adapter, candidate, test, cache)
-        lo, hi = wilson(sum(correct), n)
-        results[name] = {"accuracy": sum(correct) / n, "wilson95": [lo, hi],
-                         "mean_margin": sum(margins) / n, "correct": correct,
-                         "margins": margins, "candidate": candidate}
+    with CallMeter() as meter:
+        for name, candidate in arms:
+            correct, margins = evaluate(adapter, candidate, test, cache)
+            lo, hi = wilson(sum(correct), n)
+            results[name] = {"accuracy": sum(correct) / n, "wilson95": [lo, hi],
+                             "mean_margin": sum(margins) / n, "correct": correct,
+                             "margins": margins, "candidate": candidate}
+
+    twins = [sorted(g) for g in _identical_groups(arms) if len(g) > 1]
+    for group in twins:
+        print(f"!! {' and '.join(group)} are BYTE-IDENTICAL prompts: their gap is "
+              f"a second sample of one arm, i.e. the noise floor, not a difference.")
+    if twins:
+        print()
 
     width = max(len(name) for name in results)
-    print(f"{'arm':{width}s} {'acc':>7s}  {'95% Wilson (unpaired)':>23s} {'margin':>9s}")
+    print(f"{'arm':{width}s} {'n':>4s} {'acc':>7s}  "
+          f"{'95% Wilson (unpaired)':>23s} {'margin':>9s}")
     for name, row in results.items():
         lo, hi = row["wilson95"]
-        print(f"{name:{width}s} {row['accuracy']:7.1%}  [{lo:6.1%},{hi:7.1%}] "
+        print(f"{name:{width}s} {n:4d} {row['accuracy']:7.1%}  [{lo:6.1%},{hi:7.1%}] "
               f"({100 * (hi - lo) / 2:4.1f}pt) {row['mean_margin']:+9.3f}")
     print("\nThose intervals are the unpaired view and will overlap heavily. They are "
           "NOT the\ntest: the pairwise rows are, because every arm saw these same "
@@ -234,7 +271,10 @@ def main(argv: list[str] | None = None) -> None:
               f" This data cannot order them; the sign is not evidence.")
     print(f"\nWith {len(pairs)} pairs tested at once, expect ~{ALPHA * len(pairs):.1f} "
           f"false positives by chance; treat a lone p just under 0.05 as weak."
-          f"\n\n{adapter.calls} Jev evaluations, ${adapter.spend:.4f} spent.")
+          f"\n\nJev calls: {meter.calls} total, all of them evaluations "
+          f"({len(cache)} distinct prompts x {n} instances); "
+          f"${adapter.spend:.4f} spent.")
+    check_failures(adapter, "this comparison")
 
     if args.out:
         os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
@@ -244,7 +284,11 @@ def main(argv: list[str] | None = None) -> None:
                        "acceptable": [i["acceptable"] for i in test],
                        "bootstrap": {"resamples": args.bootstrap,
                                      "seed": args.bootstrap_seed},
-                       "arms": results, "pairs": pairs, "jev_calls": adapter.calls,
+                       "arms": results, "pairs": pairs, "jev_calls": meter.calls,
+                       "jev_calls_breakdown": {
+                           "measurement_evaluations": adapter.calls,
+                           "distinct_prompts": len(cache), "total": meter.calls},
+                       "jev_call_failures": getattr(adapter, "failures", 0),
                        "spend_usd": round(adapter.spend, 5)}, fh, indent=2)
         print(f"comparison -> {args.out}")
 

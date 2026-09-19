@@ -27,7 +27,16 @@ import random
 from . import grammar
 from .adapter import JevAdapter
 from .evidence import Evidence
-from .optimize import load_task, measure
+from .optimize import (
+    CallMeter,
+    add_task_argument,
+    check_failures,
+    check_split,
+    check_writable,
+    load_task,
+    measure,
+    warn_conflicts,
+)
 from .task import Task
 
 TEMPLATES = ("only", "never", "prefer")
@@ -85,21 +94,25 @@ def _summary(picks: dict[str, list[dict]]) -> dict[str, list[str]]:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--task", default="jevopt.tasks.triage",
-                        help="dotted path to a module exposing build() -> Task")
+    add_task_argument(parser)
     parser.add_argument("--k", type=int, default=2, help="clauses attached per option")
     parser.add_argument("--random-seeds", type=int, default=3)
     parser.add_argument("--out",
                         help="results JSON (default: runs/<task>.baselines.json)")
     parser.add_argument("--limit", type=int, default=0,
                         help="truncate val/test to this many instances (0 = all)")
+    parser.add_argument("--force", action="store_true",
+                        help="overwrite an existing results file")
     parser.add_argument("--seed", type=int, default=0,
                         help="split seed; must match the run being compared against")
     args = parser.parse_args(argv)
 
     task = load_task(args.task)
     out = args.out or f"runs/{task.name}.baselines.json"
+    check_writable((out,), args.force)
     train, val, test = task.split(seed=args.seed)
+    check_split(task, {"train": train, "val": val, "test": test})
+    warn_conflicts(task)
     if args.limit > 0:
         val, test = val[:args.limit], test[:args.limit]
 
@@ -111,16 +124,20 @@ def main(argv: list[str] | None = None) -> None:
         arms.append((f"random.s{seed}", *random_arm(task, evidence, args.k, seed)))
 
     print(f"task {task.name}; train {len(train)} / val {len(val)} / test {len(test)}; "
-          f"k={args.k}; {args.random_seeds} random seed(s)\n")
+          f"k={args.k}; {args.random_seeds} random seed(s)\n"
+          f"budget plan: {len(arms)} arms x (val {len(val)} + test {len(test)}"
+          f" = {len(val) + len(test)}) = {len(arms) * (len(val) + len(test))} "
+          f"Jev evaluations; the construction itself costs nothing.\n")
 
     report = {}
-    for name, candidate, picks in arms:
-        report[name] = {
-            "val": measure(adapter, candidate, val),
-            "test": measure(adapter, candidate, test),
-            "clauses": _summary(picks),
-            "prompt": grammar.render_prompt(task, candidate),
-        }
+    with CallMeter() as meter:
+        for name, candidate, picks in arms:
+            report[name] = {
+                "val": measure(adapter, candidate, val),
+                "test": measure(adapter, candidate, test),
+                "clauses": _summary(picks),
+                "prompt": grammar.render_prompt(task, candidate),
+            }
 
     randoms = [r for n, r in report.items() if n.startswith("random.")]
     if randoms:
@@ -130,19 +147,29 @@ def main(argv: list[str] | None = None) -> None:
             for split in ("val", "test")
         }
 
-    print(f"{'arm':14s} {'val acc':>8s} {'test acc':>9s} {'test margin':>12s}")
+    # n is printed beside the accuracies: a few points between arms on this many
+    # instances is not a difference, and the reader should not have to go looking.
+    print(f"{'arm':14s} {'n val':>6s} {'val acc':>8s} {'n test':>7s} "
+          f"{'test acc':>9s} {'test margin':>12s}")
     for name in list(report):
         row = report[name]
-        print(f"{name:14s} {row['val']['accuracy']:8.1%} {row['test']['accuracy']:9.1%} "
-              f"{row['test']['mean_margin']:+12.3f}")
+        print(f"{name:14s} {row['val'].get('n', len(val)):6d} "
+              f"{row['val']['accuracy']:8.1%} {row['test'].get('n', len(test)):7d} "
+              f"{row['test']['accuracy']:9.1%} {row['test']['mean_margin']:+12.3f}")
+
+    print(f"\nJev calls: {meter.calls} total, all of them evaluations "
+          f"({adapter.calls} measured); ${adapter.spend:.4f} spent.")
+    check_failures(adapter, "these baselines")
 
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     with open(out, "w") as fh:
         json.dump({"task": task.name, "k": args.k, "limit": args.limit,
-                   "report": report, "jev_calls": adapter.calls,
+                   "report": report, "jev_calls": meter.calls,
+                   "jev_calls_breakdown": {"measurement_evaluations": adapter.calls,
+                                           "total": meter.calls},
+                   "jev_call_failures": getattr(adapter, "failures", 0),
                    "spend_usd": round(adapter.spend, 5)}, fh, indent=2)
-    print(f"\n{adapter.calls} Jev evaluations, ${adapter.spend:.4f} spent"
-          f"\nresults -> {out}")
+    print(f"results -> {out}")
 
 
 if __name__ == "__main__":
