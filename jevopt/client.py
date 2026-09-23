@@ -43,8 +43,8 @@ def ask(state, questions: dict, model: str = MODEL, retries: int = 4) -> dict:
         headers={
             "Authorization": f"Bearer {api_key()}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/angadjosan/Jevplayground",
-            "X-Title": "Jev playground",
+            "HTTP-Referer": "https://github.com/angadjosan/jevopt",
+            "X-Title": "jevopt",
         },
     )
     delay = 1.0
